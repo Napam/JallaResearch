@@ -29,16 +29,19 @@ class MultiHeadAttention(nn.Module):
         hidden_dim: int, dimension to map data to 
         """
         super().__init__()
-        self.wq = nn.Linear(in_features=d_model, out_features=hidden_dim)
-        self.wk = nn.Linear(in_features=d_model, out_features=hidden_dim)
-        self.wv = nn.Linear(in_features=d_model, out_features=hidden_dim)
+        self.wq = nn.Linear(in_features=d_model, out_features=hidden_dim, bias=False)
+        self.wk = nn.Linear(in_features=d_model, out_features=hidden_dim, bias=False)
+        self.wv = nn.Linear(in_features=d_model, out_features=hidden_dim, bias=False)
+        self.linear = nn.Linear(in_features=hidden_dim, out_features=d_model, bias=False)
 
     def forward(self, X: torch.Tensor):
+        # Obtain query, keys and values by scaling, shearing and or rotating X with wq, wk, wv
         q = self.wq@X
         k = self.wk@X
         v = self.wv@X
 
-        
+        out = scaled_dot_product_attention(q, k, v)
+        print(out)
 
 
 if __name__ == "__main__":
@@ -98,8 +101,16 @@ if __name__ == "__main__":
 
 
     def test_MultiHeadAttention():
-        mha = MultiHeadAttention(8,4)
-        
+        mha = MultiHeadAttention(8,8)
+        assert mha.wq.bias is None
+        assert mha.wk.bias is None
+        assert mha.wv.bias is None
 
-    test_scaled_dot_product_attention()
-    # test_MultiHeadAttention()
+        wq = nn.Parameter(torch.eye(8))
+        wk = nn.Parameter(torch.eye(8))
+        wv = nn.Parameter(torch.eye(8))
+
+        
+        
+    # test_scaled_dot_product_attention()
+    test_MultiHeadAttention()
