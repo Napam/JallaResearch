@@ -1,31 +1,22 @@
 import numpy as np 
 from matplotlib import pyplot as plt 
+import torch 
+from debug import debugs, debug, debugt
 
-def get_angles(pos, i, d_model):
-    angle_rates = 1 / np.power(10000, (2 * (i//2)) / np.float32(d_model))
-    return pos * angle_rates
+a = torch.tensor([
+    [1,2],
+    [3,4],
+])
 
-def positional_encoding(position, d_model):
-    angle_rads = get_angles(np.arange(position)[:, np.newaxis],
-                            np.arange(d_model)[np.newaxis, :],
-                            d_model)
+b = torch.tensor([
+    [1,0],
+    [0,1],
+])
 
-    # apply sin to even indices in the array; 2i
-    angle_rads[:, 0::2] = np.sin(angle_rads[:, 0::2])
+a = torch.stack([a for i in range(1,4)])
+b = torch.stack([b*i for i in range(1,4)])
 
-    # apply cos to odd indices in the array; 2i+1
-    angle_rads[:, 1::2] = np.cos(angle_rads[:, 1::2])
+debug(a)
+debug(b)
+debug(a@b)
 
-    pos_encoding = angle_rads[np.newaxis, ...]
-    
-    return pos_encoding
-
-pos_encoding = positional_encoding(50, 512)
-print(pos_encoding.shape)
-
-plt.pcolormesh(pos_encoding[0], cmap='RdBu')
-plt.xlabel('Depth')
-plt.xlim((0, 512))
-plt.ylabel('Position')
-plt.colorbar()
-plt.show()

@@ -23,25 +23,39 @@ def scaled_dot_product_attention(q: torch.Tensor, k: torch.Tensor, v: torch.Tens
 
 
 class MultiHeadAttention(nn.Module):
-    def __init__(self, d_model: int, hidden_dim: int):
+    def __init__(self, d_model: int, hidden_dim_qk: int, hidden_dim_v: int, n_heads: int):
         """
         d_model: int, data dimensions (number of features)
         hidden_dim: int, dimension to map data to 
         """
         super().__init__()
-        self.wq = nn.Linear(in_features=d_model, out_features=hidden_dim, bias=False)
-        self.wk = nn.Linear(in_features=d_model, out_features=hidden_dim, bias=False)
-        self.wv = nn.Linear(in_features=d_model, out_features=hidden_dim, bias=False)
-        self.linear = nn.Linear(in_features=hidden_dim, out_features=d_model, bias=False)
+        self.n_heads = n_heads
+        self.d_head = d_model // n_heads
+        self.d_model = d_model
+        self.wq = nn.Linear(in_features=d_model, out_features=hidden_dim_qk, bias=False)
+        self.wk = nn.Linear(in_features=d_model, out_features=hidden_dim_qk, bias=False)
+        self.wv = nn.Linear(in_features=d_model, out_features=hidden_dim_v, bias=False)
+        self.linear = nn.Linear(in_features=hidden_dim_qk, out_features=d_model, bias=False)
 
-    def forward(self, X: torch.Tensor):
+    def split_heads(self, X: torch.tensor):
+        return X.view(-1, self.n_heads, self.d_head).permute(1,0,2)
+
+    def forward(self, Xq: torch.Tensor, Xk: torch.Tensor, Xv: torch.Tensor):
         # Obtain query, keys and values by scaling, shearing and or rotating X with wq, wk, wv
-        q = self.wq@X
-        k = self.wk@X
-        v = self.wv@X
+        q = self.wq(Xq)
+        k = self.wk(Xk)
+        v = self.wv(Xv)
 
-        out = scaled_dot_product_attention(q, k, v)
-        print(out)
+        q = self.split_heads(q)
+        k = self.split_heads(k)
+        v = self.split_heads(v)
+
+        # debug(q)
+        # debug(k)
+        # debug(k.permute(1,2,0).T)
+        # debug(q@k.permute(1,2,0).T)
+        out, attention = scaled_dot_product_attention(q, k.permute(1,2,0), v)
+        return out.permute(1,0,2).reshape(-1,self.d_model)
 
 
 if __name__ == "__main__":
@@ -62,7 +76,12 @@ if __name__ == "__main__":
         # Interpret scaled dot product attention as a continous way 
         # to search in a query-key database
 
-        print("Scenario 1")
+        print(
+            "\x1b[1m\x1b[3mScenario 1:\x1b[0m\n"
+            "You have a query engine with four queries (4x3 matrix)\n"
+            "You \"search\" with a single query (1x3 matrix)\n"
+            "You retrieve values"
+        )
         # Scenario:
         # You have a query engine with four query (4x3 matrix)
         # You "search" with a single query (1x3 matrix)
@@ -73,11 +92,11 @@ if __name__ == "__main__":
             [  0,  0, 10],
             [  0,  0, 10],
         ], dtype=torch.float32)
-        v = torch.tensor([ # (hidden_dim_v, idk) 
-            [    1, 0],
-            [   10, 0],
-            [  100, 5],
-            [ 1000, 6],
+        v = torch.tensor([ # (hidden_dim_v, idk)
+            [    1,   0],
+            [   10,   0],
+            [  100,   5],
+            [ 1000,   6],
         ], dtype=torch.float32)
         q = torch.tensor([
             [ 0, 10, 0],
@@ -87,9 +106,10 @@ if __name__ == "__main__":
         debug(attention)
         debug(out)
 
-        print("\nScenario 2")
-        # Scenerio:
-        # You search with 3 queries in the database (3x3 matrix)
+        print(
+            "\x1b[1m\x1b[3mScenario 2:\x1b[0m\n"
+            "You search with 3 queries in the data base (query is 3x3 matrox)"
+        )
         q = torch.tensor([
             [  0,  0, 10],
             [  0, 10,  0],
@@ -99,18 +119,85 @@ if __name__ == "__main__":
         debug(attention)
         debug(out)
 
-
+    @torch.no_grad()
     def test_MultiHeadAttention():
-        mha = MultiHeadAttention(8,8)
-        assert mha.wq.bias is None
-        assert mha.wk.bias is None
-        assert mha.wv.bias is None
+        def singlehead():
+            dim = 3
+            mha = MultiHeadAttention(d_model=3, hidden_dim_qk=3, hidden_dim_v=2, n_heads=1)
+            assert mha.wq.bias is None
+            assert mha.wk.bias is None
+            assert mha.wv.bias is None
 
-        wq = nn.Parameter(torch.eye(8))
-        wk = nn.Parameter(torch.eye(8))
-        wv = nn.Parameter(torch.eye(8))
+            mha.wq.weight = nn.Parameter(torch.eye(dim))
+            mha.wk.weight = nn.Parameter(torch.eye(dim))
+            mha.wv.weight = nn.Parameter(torch.eye(dim))
 
-        
+            Xq = torch.tensor([
+                [  0,  0, 10],
+                [  0, 10,  0],
+                [ 10, 10,  0],
+            ], dtype=torch.float32)
+
+            Xk = torch.tensor([ 
+                [ 10,  0,  0],
+                [  0, 10,  0],
+                [  0,  0, 10],
+                [  0,  0, 10],
+            ], dtype=torch.float32)
+
+            Xv = torch.tensor([
+                [    1,  0, 0],
+                [   10,  0, 0],
+                [  100,  5, 0],
+                [ 1000,  6, 0], 
+            ], dtype=torch.float32)
+
+            print(
+                "\x1b[1m\x1b[3mNo multi head attention (regular matmul)\x1b[0m"
+            )
+            out = mha(Xq, Xk, Xv)
+            debug(out)
+
+        # singlehead()
+
+        def multihead():
+            print(
+                "\x1b[1m\x1b[3m2-head multi head attention \x1b[0m"
+            )
+            dim = 4
+            mha = MultiHeadAttention(d_model=dim, hidden_dim_qk=dim, hidden_dim_v=2, n_heads=2)
+
+            Xq = torch.tensor([
+                [  0, 10, 0, 0],
+                [  0, 10, 0, 0],
+                [ 10, 10, 0, 0],
+                [  0,  0, 0,10],
+            ], dtype=torch.float32)
+
+            Xk = torch.tensor([ 
+                [ 10,  0,  0,  0],
+                [  0, 10,  0,  0],
+                [  0,  0, 10,  0],
+                [  0,  0, 10,  0],
+                [  0,  0,  0, 10],
+            ], dtype=torch.float32)
+
+            Xv = torch.tensor([
+                [    1,   0,   0,   0],
+                [   10,   0,   0,   0],
+                [  100,   5,   0,   0],
+                [ 1000,   6,   0,   0],
+                [  200,   6,   0,   0],
+            ], dtype=torch.float32)
+
+            mha.wq.weight = nn.Parameter(torch.eye(dim))
+            mha.wk.weight = nn.Parameter(torch.eye(dim))
+            mha.wv.weight = nn.Parameter(torch.eye(Xv.shape[1]))
+
+            out = mha(Xq, Xk, Xv)
+            debug(out)
+
+        multihead()
         
     # test_scaled_dot_product_attention()
     test_MultiHeadAttention()
