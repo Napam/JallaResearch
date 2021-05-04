@@ -38,7 +38,12 @@ class MultiHeadAttention(nn.Module):
         self.linear = nn.Linear(in_features=hidden_dim_qk, out_features=d_model, bias=False)
 
     def split_heads(self, X: torch.tensor):
-        return X.view(-1, self.n_heads, self.d_head).permute(1,0,2)
+        return torch.as_strided(
+            X, 
+            size=(self.n_heads, len(X), self.d_head),
+            stride=(X.shape[1] // self.n_heads, X.shape[1], 1)
+        )
+        # return X.view(-1, self.n_heads, self.d_head).permute(1,0,2)
 
     def forward(self, Xq: torch.Tensor, Xk: torch.Tensor, Xv: torch.Tensor):
         # Obtain query, keys and values by scaling, shearing and or rotating X with wq, wk, wv
@@ -50,12 +55,8 @@ class MultiHeadAttention(nn.Module):
         k = self.split_heads(k)
         v = self.split_heads(v)
 
-        # debug(q)
-        # debug(k)
-        # debug(k.permute(1,2,0).T)
-        # debug(q@k.permute(1,2,0).T)
         out, attention = scaled_dot_product_attention(q, k.permute(1,2,0), v)
-        return out.permute(1,0,2).reshape(-1,self.d_model)
+        return out.permute(1,0,2).reshape(-1,self.d_model) # "Concatenate"
 
 
 if __name__ == "__main__":
@@ -73,51 +74,73 @@ if __name__ == "__main__":
 
 
     def test_scaled_dot_product_attention():
-        # Interpret scaled dot product attention as a continous way 
-        # to search in a query-key database
+        def scenarios():
+            # Interpret scaled dot product attention as a continous way 
+            # to search in a query-key database
 
-        print(
-            "\x1b[1m\x1b[3mScenario 1:\x1b[0m\n"
-            "You have a query engine with four queries (4x3 matrix)\n"
-            "You \"search\" with a single query (1x3 matrix)\n"
-            "You retrieve values"
-        )
-        # Scenario:
-        # You have a query engine with four query (4x3 matrix)
-        # You "search" with a single query (1x3 matrix)
-        # You retrieve values, which is kinda like, 
-        k = torch.tensor([ # (hidden_dim_k, n_tokens)
-            [ 10,  0,  0],
-            [  0, 10,  0],
-            [  0,  0, 10],
-            [  0,  0, 10],
-        ], dtype=torch.float32)
-        v = torch.tensor([ # (hidden_dim_v, idk)
-            [    1,   0],
-            [   10,   0],
-            [  100,   5],
-            [ 1000,   6],
-        ], dtype=torch.float32)
-        q = torch.tensor([
-            [ 0, 10, 0],
-        ], dtype=torch.float32)
+            print(
+                "\x1b[1m\x1b[3mScenario 1:\x1b[0m\n"
+                "You have a query engine with four queries (4x3 matrix)\n"
+                "You \"search\" with a single query (1x3 matrix)\n"
+                "You retrieve values"
+            )
+            # Scenario:
+            # You have a query engine with four query (4x3 matrix)
+            # You "search" with a single query (1x3 matrix)
+            # You retrieve values, which is kinda like, 
+            k = torch.tensor([ # (hidden_dim_k, n_tokens)
+                [ 10,  0,  0],
+                [  0, 10,  0],
+                [  0,  0, 10],
+                [  0,  0, 10],
+            ], dtype=torch.float32)
+            v = torch.tensor([ # (hidden_dim_v, idk)
+                [    1,   0],
+                [   10,   0],
+                [  100,   5],
+                [ 1000,   6],
+            ], dtype=torch.float32)
+            q = torch.tensor([
+                [ 0, 10, 0],
+            ], dtype=torch.float32)
 
-        out, attention = scaled_dot_product_attention(q, k, v)
-        debug(attention)
-        debug(out)
+            out, attention = scaled_dot_product_attention(q, k, v)
+            debug(attention)
+            debug(out)
 
-        print(
-            "\x1b[1m\x1b[3mScenario 2:\x1b[0m\n"
-            "You search with 3 queries in the data base (query is 3x3 matrox)"
-        )
-        q = torch.tensor([
-            [  0,  0, 10],
-            [  0, 10,  0],
-            [ 10, 10,  0],
-        ], dtype=torch.float32)
-        out, attention = scaled_dot_product_attention(q, k, v)
-        debug(attention)
-        debug(out)
+            print(
+                "\x1b[1m\x1b[3mScenario 2:\x1b[0m\n"
+                "You search with 3 queries in the data base (query is 3x3 matrox)"
+            )
+            q = torch.tensor([
+                [  0,  0, 10],
+                [  0, 10,  0],
+                [ 10, 10,  0],
+            ], dtype=torch.float32)
+            out, attention = scaled_dot_product_attention(q, k, v)
+            debug(attention)
+            debug(out)
+
+        def example():
+            q = torch.tensor([
+                [10, 0],
+                [10,10]
+            ], dtype=torch.float32)
+            K = torch.tensor([
+                [10,0],
+                [0,10],
+            ], dtype=torch.float32)
+            V = torch.tensor([
+                [ 2, 0, 20, 1], 
+                [4, 1, 40, 0]
+            ], dtype=torch.float32)
+
+            out, attention = scaled_dot_product_attention(q, K ,V)
+            debug(attention)
+            debug(out)
+
+        example()
+
 
     @torch.no_grad()
     def test_MultiHeadAttention():
@@ -196,8 +219,9 @@ if __name__ == "__main__":
 
             out = mha(Xq, Xk, Xv)
             debug(out)
-
+        
+        # singlehead()
         multihead()
         
-    # test_scaled_dot_product_attention()
-    test_MultiHeadAttention()
+    test_scaled_dot_product_attention()
+    # test_MultiHeadAttention()
