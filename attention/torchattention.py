@@ -4,12 +4,14 @@ import numpy as np
 from matplotlib import pyplot as plt 
 import math
 from debug import debug, debugs, debugt
-
+plt.rcParams.update({'font.family': 'serif', 'mathtext.fontset':'dejavuserif'})
 
 def positional_encoding(n_tokens: int, d_model: int):
     # Get angles to be used in sin and cos
                                                              # //2 since should work on every other
     encoding = torch.arange(n_tokens).unsqueeze(1) / 10000**(2 * (torch.arange(d_model)//2) / d_model)
+    # print(encoding)
+    # print(2 * (torch.arange(d_model)//2))
     
     encoding[:, 0::2] = torch.sin(encoding[:, 0::2])
     encoding[:, 1::2] = torch.cos(encoding[:, 1::2])
@@ -35,7 +37,7 @@ class MultiHeadAttention(nn.Module):
         self.wq = nn.Linear(in_features=d_model, out_features=hidden_dim_qk, bias=False)
         self.wk = nn.Linear(in_features=d_model, out_features=hidden_dim_qk, bias=False)
         self.wv = nn.Linear(in_features=d_model, out_features=hidden_dim_v, bias=False)
-        self.linear = nn.Linear(in_features=hidden_dim_qk, out_features=d_model, bias=False)
+        self.linear = nn.Linear(in_features=hidden_dim_v, out_features=hidden_dim_v, bias=False)
 
     def split_heads(self, X: torch.tensor):
         return torch.as_strided(
@@ -56,21 +58,30 @@ class MultiHeadAttention(nn.Module):
         v = self.split_heads(v)
 
         out, attention = scaled_dot_product_attention(q, k.permute(1,2,0), v)
-        return out.permute(1,0,2).reshape(-1,self.d_model) # "Concatenate"
-
+        debug(out)
+        out = out.permute(1,0,2).reshape(-1,self.d_model) # "Concatenate"
+        return self.linear(out)
 
 if __name__ == "__main__":
     torch.set_printoptions(sci_mode=False, precision=2)
 
     def test_position_encoding():
-        pos_encoding = positional_encoding(50, 512)
-        print(pos_encoding.shape)
-        plt.pcolormesh(pos_encoding[0], cmap='RdBu')
-        plt.xlabel('Depth')
-        plt.xlim((0, 512))
-        plt.ylabel('Position')
+        pos_encoding = positional_encoding(3, 4).numpy()[0]
+        print(pos_encoding)
+        plt.figure(figsize=(5,4))
+        plt.pcolormesh(pos_encoding, cmap='RdBu', vmin=-1, vmax=1)
+        plt.gca().invert_yaxis()
+        plt.xlabel('Depth ($i$)')
+        # print(plt.yticks())
+        # plt.xlim((0, 512))
+        plt.ylabel('Position ($p$)')
         plt.colorbar()
+        plt.title("Positional encoding for $16$ vectors $\in\mathbb{R}^{32}$")
+        plt.tight_layout()
+        # plt.savefig("posenc.pdf")
         plt.show()
+
+    test_position_encoding()
 
 
     def test_scaled_dot_product_attention():
@@ -146,7 +157,7 @@ if __name__ == "__main__":
     def test_MultiHeadAttention():
         def singlehead():
             dim = 3
-            mha = MultiHeadAttention(d_model=3, hidden_dim_qk=3, hidden_dim_v=2, n_heads=1)
+            mha = MultiHeadAttention(d_model=3, hidden_dim_qk=3, hidden_dim_v=3, n_heads=1)
             assert mha.wq.bias is None
             assert mha.wk.bias is None
             assert mha.wv.bias is None
@@ -154,6 +165,7 @@ if __name__ == "__main__":
             mha.wq.weight = nn.Parameter(torch.eye(dim))
             mha.wk.weight = nn.Parameter(torch.eye(dim))
             mha.wv.weight = nn.Parameter(torch.eye(dim))
+            mha.linear.weight = nn.Parameter(torch.eye(3))
 
             Xq = torch.tensor([
                 [  0,  0, 10],
@@ -188,7 +200,7 @@ if __name__ == "__main__":
                 "\x1b[1m\x1b[3m2-head multi head attention \x1b[0m"
             )
             dim = 4
-            mha = MultiHeadAttention(d_model=dim, hidden_dim_qk=dim, hidden_dim_v=2, n_heads=2)
+            mha = MultiHeadAttention(d_model=dim, hidden_dim_qk=dim, hidden_dim_v=4, n_heads=2)
 
             Xq = torch.tensor([
                 [  0, 10, 0, 0],
@@ -216,12 +228,44 @@ if __name__ == "__main__":
             mha.wq.weight = nn.Parameter(torch.eye(dim))
             mha.wk.weight = nn.Parameter(torch.eye(dim))
             mha.wv.weight = nn.Parameter(torch.eye(Xv.shape[1]))
+            mha.linear.weight = nn.Parameter(torch.eye(4))
+
+            out = mha(Xq, Xk, Xv)
+            debug(out)
+
+        def multihead2():
+            print(
+                "\x1b[1m\x1b[3m2-head multi head attention \x1b[0m"
+            )
+            dim = 4
+            mha = MultiHeadAttention(d_model=dim, hidden_dim_qk=100, hidden_dim_v=4, n_heads=2)
+
+            Xq = torch.tensor([
+                [ 10,  0, 10 ,0],
+                [ 10, 10, 0, 10],
+            ], dtype=torch.float32)
+
+            Xk = torch.tensor([ 
+                [ 10,  0,  20,  0],
+                [  0, 10,  20, 20],
+            ], dtype=torch.float32)
+
+            Xv = torch.tensor([
+                [ 2, 0, 20, 0],
+                [ 4, 1, 40, 0],
+            ], dtype=torch.float32)
+
+            # mha.wq.weight = nn.Parameter(torch.eye(dim))
+            # mha.wk.weight = nn.Parameter(torch.eye(dim))
+            # mha.wv.weight = nn.Parameter(torch.eye(Xv.shape[1]))
+            mha.linear.weight = nn.Parameter(torch.eye(4))
 
             out = mha(Xq, Xk, Xv)
             debug(out)
         
         # singlehead()
-        multihead()
+        # multihead()
+        multihead2()
         
-    test_scaled_dot_product_attention()
+    # test_scaled_dot_product_attention()
     # test_MultiHeadAttention()

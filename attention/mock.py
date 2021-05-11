@@ -1,22 +1,29 @@
 import numpy as np 
-from matplotlib import pyplot as plt 
-import torch 
-from debug import debugs, debug, debugt
+from numpy.lib.stride_tricks import as_strided, sliding_window_view
 
-a = torch.tensor([
-    [1,2],
-    [3,4],
+x = np.stack([
+    np.array([
+        [1,1,1,1],
+        [1,1,1,1],
+        [1,1,1,1],
+        [1,1,1,1],
+    ]),
+    np.array([
+        [2,2,2,2],
+        [2,2,2,2],
+        [2,2,2,2],
+        [2,2,2,2],
+    ]),
+    np.array([
+        [3,3,3,3],
+        [3,3,3,3],
+        [3,3,3,3],
+        [3,3,3,3],
+    ])
 ])
 
-b = torch.tensor([
-    [1,0],
-    [0,1],
-])
+def get_sliding_window(x, window_size, strides):
+    as_strided(x)
 
-a = torch.stack([a for i in range(1,4)])
-b = torch.stack([b*i for i in range(1,4)])
-
-debug(a)
-debug(b)
-debug(a@b)
+get_sliding_window(x, window_size=(2,2), strides=(2,2))
 

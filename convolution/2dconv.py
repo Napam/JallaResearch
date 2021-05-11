@@ -13,7 +13,6 @@ Xstrided = as_strided(X, shape=(Xr-Kr+1, Xc-Kc+1, Kr, Kc), strides=u*(Xc,1,Xc,1)
 R = np.full(Xstrided.shape[:2], np.nan)
 Rr, Rc = R.shape
 
-highlight = np.vectorize(lambda x: f"\x1b[33m10\x1b[0m")
 for i, row in enumerate(Xstrided):
     for j, window in enumerate(row):
         temp = window.copy()
