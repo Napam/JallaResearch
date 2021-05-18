@@ -8,9 +8,9 @@ def plot_box_intersection(boxes1: ArrayLike, boxes2: ArrayLike):
     boxes2 = np.array(boxes2)
         
     fig, ax = plt.subplots(figsize=(10,10))
-    ax.imshow(np.zeros((50,50)))
+    ax.imshow(np.zeros((50,50)), cmap='gray_r')
     for x1, y1, x2, y2 in (*boxes1, *boxes2):
-        ax.add_patch(plt.Rectangle((x1, y1), x2-x1, y2-y1, facecolor='none', edgecolor='red'))
+        ax.add_patch(plt.Rectangle((x1, y1), x2-x1, y2-y1, facecolor='none', edgecolor='k'))
         
     lt = np.max([boxes1[:,:2], boxes2[:,:2]], 0)
     rb = np.min([boxes1[:,2:], boxes2[:,2:]], 0)
@@ -19,10 +19,11 @@ def plot_box_intersection(boxes1: ArrayLike, boxes2: ArrayLike):
     
     boxes = np.concatenate((lt, rb), axis=1)
     for (x, y), (w, h) in zip(boxes[:,:2], wh):
-        ax.add_patch(plt.Rectangle((x, y), w, h, facecolor='red', alpha=0.2))
+        ax.add_patch(plt.Rectangle((x, y), w, h, facecolor='k', alpha=0.2))
+    return ax 
 
     
-plot_box_intersection(
+ax = plot_box_intersection(
     [[10,10,20,20],
      [30, 5,40,15],
      [25,30,35,40]],
