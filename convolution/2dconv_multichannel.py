@@ -68,3 +68,5 @@ def conv2d_asciiviz(x: np.ndarray, k: np.ndarray, rowstride: int, colstride: int
                 time.sleep(0.69)
     print(f"\x1b[{x.shape[0]*x.shape[1]+len(r)+4}B")
     return r
+
+print("Output:\n",conv2d(x,k,1,1))
