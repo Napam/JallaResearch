@@ -12,6 +12,6 @@ public class Entry {
 
     public String toString()
     {
-        return this.firstName + " " + this.lastName + ", " + number;
+        return this.firstName + " " + this.lastName + ", " + String.format("%8d", number);
     }
 }
