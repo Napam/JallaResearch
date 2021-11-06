@@ -1,0 +1,1 @@
+double multiply(double, double);
