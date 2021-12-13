@@ -29,3 +29,7 @@ a = np.array(list(range(4)) * 2 + [1, 1, 1, 1, 1, 0, 0, 0, 2, 2])
 np.random.shuffle(a)
 print(a)
 print(groupsort(a))
+
+# Your input
+a = np.array([3, 1, 2, 0, 4, 5, 6, 7, 1, 0, 9, 5, 3, 9, 2, 7, 6, 4])
+print(groupsort(a))
