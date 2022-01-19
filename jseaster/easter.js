@@ -19,6 +19,7 @@ function easter(year) {
     const d = 1 + (p + 27 + Math.floor((p+6)/40)) % 31
     const m = 3 + Math.floor((p+26)/30) 
 
-    return new Date(y, m-1, d-1, 0, 0 ,0 ,0)
+    return new Date(y, m-1, d)
 }
-console.log(easter(2024))
+
+console.log(easter(2022))
