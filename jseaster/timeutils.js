@@ -87,6 +87,12 @@ function countBusinessDays(from, to, holidays = []) {
 function getExpectedWorkedHours(from, to) {
   console.log('from :>> ', from);
   console.log('to :>> ', to);
+  [
+    {from: new Date(2022, 3, 1), to: new Date(2022, 11, 31)},
+    {from: new Date(2023, 0, 0), to: new Date(2023, 11, 31)},
+    {from: new Date(2024, 0, 0), to: new Date(2024, 11, 31)},
+    {from: new Date(2025, 0, 0), to: new Date(2025, 3, 30)},
+  ]
 }
 
 from = new Date(2022, 3, 1)
