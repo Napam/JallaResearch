@@ -1,4 +1,3 @@
-
 /**
  * Based on Python's dateutil easter implementation
  * @param {number} year 
@@ -47,6 +46,7 @@ function offsetDate(date, { years = 0, months = 0, days = 0, hours = 0, minutes 
 function calcEasterDates(year) {
   easterSunday = calcEasterSunday(year)
   return {
+    palmSunday: offsetDate(easterSunday, {days: -7}),
     maundyThursday: offsetDate(easterSunday, { days: -3 }),
     goodFriday: offsetDate(easterSunday, { days: -2 }),
     easterSunday,
@@ -57,6 +57,10 @@ function calcEasterDates(year) {
   }
 }
 
+/**
+ * @param {number} year 
+ * @returns {{[key: string]: Date}} object where keys are holiday names, and values as dates
+ */
 function getNorwegianHolidays(year) {
   easterDates = calcEasterDates(year)
   fixedHolidays = {
@@ -75,7 +79,7 @@ function inWeekend(date) {
 }
 
 /**
- * Inclusive from to dates
+ * Inclusive 'from' and 'to' dates
  * @param {Date} date 
  * @param {Date} from 
  * @param {Date} to 
@@ -107,7 +111,7 @@ function countDays(from, to) {
     wednesdays: Math.floor((days + (fromDay + 3) % 7) / 7),
     thursdays: Math.floor((days + (fromDay + 2) % 7) / 7),
     fridays: Math.floor((days + (fromDay + 1) % 7) / 7),
-    saturdays: Math.floor((days + (fromDay + 0) % 7) / 7),
+    saturdays: Math.floor((days + fromDay % 7) / 7),
     sundays: Math.floor((days + (fromDay - 1) % 7) / 7)
   }
 }
@@ -120,14 +124,15 @@ function countDays(from, to) {
  * @returns 
  */
 function countWorkDays(from, to, holidays = []) {
-  ({ days, saturdaysAndSundays } = countDays(from, to))
+  ({ days, saturdays, sundays } = countDays(from, to))
 
   // Use for-of to support generators and such
   holidaysInBusinessDays = 0
   for (holiday of holidays)
-    if (isBetween(holiday, from, to) && !inWeekend(holiday)) { holidaysInBusinessDays++ }
+    if (isBetween(holiday, from, to) && !inWeekend(holiday)) 
+      holidaysInBusinessDays++
 
-  return days - saturdaysAndSundays - holidaysInBusinessDays
+  return days - saturdays - sundays - holidaysInBusinessDays
 }
 
 function* norwegianHolidaysGenerator(from, to) {
@@ -139,15 +144,15 @@ function* norwegianHolidaysGenerator(from, to) {
 }
 
 /**
- * Aggregates array of objects
- * @param {array<object>} objects 
- * @param {function} valueAggregator
+ * Aggregates array of objects.
+ * @param {array<object>} objects, array of objects with identical properties 
+ * @param {function} aggregator, function to aggregate values
  * @returns {object}
  */
-function aggregate(objects, valueAggregator = (x, y) => x + y) {
+function aggregate(objects, aggregator = (x, y) => x + y) {
   keys = Reflect.ownKeys(objects[0])
   return objects.slice(1).reduce((acc, object) =>
-    keys.forEach(key => { acc[key] += object[key] }) || acc
+    keys.forEach(key => { acc[key] = aggregator(acc[key], object[key]) }) || acc
     , { ...objects[0] })
 }
 
