@@ -92,46 +92,23 @@ function isBetween(date, from, to) {
  * @param {Date} to
  * @returns {{days: number, saturdaysAndSundays: number}}
  */
-function fastCountDays(from, to) {
+function countDays(from, to) {
   fromTime = from.getTime()
   toTime = to.getTime()
   if (fromTime > toTime)
     throw new Error('"from" date cannot be later than "to" date')
 
   days = 1 + Math.round((toTime - fromTime) / 86400000)
-  saturdays = Math.floor((from.getDay() + days) / 7)
-  fromIsSunday = from.getDay() === 0
-  toIsSaturday = to.getDay() === 6
+  fromDay = from.getDay()
   return {
     days,
-    saturdaysAndSundays: 2 * saturdays + fromIsSunday - toIsSaturday,
-  }
-}
-
-function fastCountDays2(from, to) {
-  fromTime = from.getTime()
-  toTime = to.getTime()
-  if (fromTime > toTime)
-    throw new Error('"from" date cannot be later than "to" date')
-
-  days = 1 + Math.round((toTime - fromTime) / 86400000)
-  mondays = Math.floor(days / 7)
-  tuesdays = Math.floor(days / 7)
-  wednesdays = Math.floor(days / 7)
-  thursdays = Math.floor(days / 7)
-  fridays = Math.floor(days / 7)
-  saturdays = Math.floor(days / 7)
-  sundays = Math.floor(days / 7)
-
-  return {
-    days,
-    mondays,
-    tuesdays,
-    wednesdays,
-    thursdays,
-    fridays,
-    saturdays,
-    sundays
+    mondays: Math.floor((days + (fromDay + 5) % 7) / 7),
+    tuesdays: Math.floor((days + (fromDay + 4) % 7) / 7),
+    wednesdays: Math.floor((days + (fromDay + 3) % 7) / 7),
+    thursdays: Math.floor((days + (fromDay + 2) % 7) / 7),
+    fridays: Math.floor((days + (fromDay + 1) % 7) / 7),
+    saturdays: Math.floor((days + (fromDay + 0) % 7) / 7),
+    sundays: Math.floor((days + (fromDay - 1) % 7) / 7)
   }
 }
 
@@ -143,7 +120,7 @@ function fastCountDays2(from, to) {
  * @returns 
  */
 function countWorkDays(from, to, holidays = []) {
-  ({ days, saturdaysAndSundays } = fastCountDays(from, to))
+  ({ days, saturdaysAndSundays } = countDays(from, to))
 
   // Use for-of to support generators and such
   holidaysInBusinessDays = 0
@@ -161,13 +138,22 @@ function* norwegianHolidaysGenerator(from, to) {
       yield date
 }
 
-function calcFlextime(from, to, offset) {
-  return fastCountDays2(from, to)
+/**
+ * Aggregates array of objects
+ * @param {array<object>} objects 
+ * @param {function} valueAggregator
+ * @returns {object}
+ */
+function aggregate(objects, valueAggregator = (x, y) => x + y) {
+  keys = Reflect.ownKeys(objects[0])
+  return objects.slice(1).reduce((acc, object) =>
+    keys.forEach(key => { acc[key] += object[key] }) || acc
+    , { ...objects[0] })
 }
 
-from = new Date(2022, 3, 1)
-to = new Date(2022, 3, 30)
-console.log(calcFlextime(from, to, 1))
+function calcFlextime(from, to, offset) {
+  return countDays(from, to)
+}
 
 module.exports = {
   calcEasterSunday,
@@ -176,10 +162,10 @@ module.exports = {
   getNorwegianHolidays,
   inWeekend,
   isBetween,
-  fastCountDays,
-  fastCountDays2,
+  countDays,
   countWorkDays,
   norwegianHolidaysGenerator,
+  aggregate,
   calcFlextime
 }
 
