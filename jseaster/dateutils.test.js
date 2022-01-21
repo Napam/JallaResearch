@@ -49,21 +49,25 @@ test('countDays for January 2022 is correct', () => {
   to = new Date(2022, 0, 31)
   expect(dateutils.countDays(from, to)).toEqual(daysIn.january2022)
 })
+
 test('countDays for February 2022 is correct', () => {
   from = new Date(2022, 1, 1)
   to = new Date(2022, 1, 28)
   expect(dateutils.countDays(from, to)).toEqual(daysIn.february2022)
 })
+
 test('countDays for March 2022 is correct', () => {
   from = new Date(2022, 2, 1)
   to = new Date(2022, 2, 31)
   expect(dateutils.countDays(from, to)).toEqual(daysIn.march2022)
 })
+
 test('countDays for April 2022 is correct', () => {
   from = new Date(2022, 3, 1)
   to = new Date(2022, 3, 30)
   expect(dateutils.countDays(from, to)).toEqual(daysIn.april2022)
 })
+
 test('countDays for Jan 1 2022 to April 31 2022 is correct', () => {
   from = new Date(2022, 0, 1)
   to = new Date(2022, 3, 30)
@@ -81,4 +85,10 @@ test('calcEasterDates is correct for year 2022', () => {
     whitsun: new Date(2022, 5, 5),
     whitMonday: new Date(2022, 5, 6)
   })
+})
+
+test('calcFlextime case 1 ', () => {
+  referenceDate = new Date(2022, 0, 1)
+  referenceBalance = 12.5
+  dateutils.calcFlexBalance(20, referenceDate, referenceBalance)
 })
