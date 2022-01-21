@@ -115,9 +115,23 @@ function fastCountDays2(from, to) {
     throw new Error('"from" date cannot be later than "to" date')
 
   days = 1 + Math.round((toTime - fromTime) / 86400000)
-
+  mondays = Math.floor(days / 7)
+  tuesdays = Math.floor(days / 7)
+  wednesdays = Math.floor(days / 7)
+  thursdays = Math.floor(days / 7)
+  fridays = Math.floor(days / 7)
+  saturdays = Math.floor(days / 7)
+  sundays = Math.floor(days / 7)
 
   return {
+    days,
+    mondays,
+    tuesdays,
+    wednesdays,
+    thursdays,
+    fridays,
+    saturdays,
+    sundays
   }
 }
 
