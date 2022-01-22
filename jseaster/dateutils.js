@@ -29,22 +29,22 @@ const NUM_TO_DAYS = {
 /**
  * Based on Python's dateutil easter implementation
  * @param {number} year 
- * @returns {object} date of easter sunday at given year
+ * @returns {Date} date of easter sunday at given year
  */
 function calcEasterSunday(year) {
   if (typeof year !== 'number') {
     throw new Error('Year must specified as a number')
   }
 
-  y = year
-  g = y % 19
-  c = Math.floor(y / 100)
-  h = (c - Math.floor(c / 4) - Math.floor((8 * c + 13) / 25) + 19 * g + 15) % 30
-  i = h - Math.floor(h / 28) * (1 - Math.floor(h / 28) * Math.floor(29 / (h + 1)) * Math.floor((21 - g) / 11))
-  j = (y + Math.floor(y / 4) + i + 2 - c + Math.floor(c / 4)) % 7
-  p = i - j
-  d = 1 + (p + 27 + Math.floor((p + 6) / 40)) % 31
-  m = 3 + Math.floor((p + 26) / 30)
+  const y = year
+  const g = y % 19
+  const c = Math.floor(y / 100)
+  const h = (c - Math.floor(c / 4) - Math.floor((8 * c + 13) / 25) + 19 * g + 15) % 30
+  const i = h - Math.floor(h / 28) * (1 - Math.floor(h / 28) * Math.floor(29 / (h + 1)) * Math.floor((21 - g) / 11))
+  const j = (y + Math.floor(y / 4) + i + 2 - c + Math.floor(c / 4)) % 7
+  const p = i - j
+  const d = 1 + (p + 27 + Math.floor((p + 6) / 40)) % 31
+  const m = 3 + Math.floor((p + 26) / 30)
   return new Date(y, m - 1, d)
 }
 
@@ -72,10 +72,10 @@ function offsetDate(
 /**
  * Returns easter days respective to given year
  * @param {number} year >= 1970
- * @returns {object}
+ * @returns
  */
 function calcEasterDates(year) {
-  easterSunday = calcEasterSunday(year)
+  const easterSunday = calcEasterSunday(year)
   return {
     palmSunday: offsetDate(easterSunday, { days: -7 }),
     maundyThursday: offsetDate(easterSunday, { days: -3 }),
@@ -90,11 +90,11 @@ function calcEasterDates(year) {
 
 /**
  * @param {number} year 
- * @returns {{[key: string]: Date}} object where keys are holiday names, and values as dates
+ * @returns
  */
 function getNorwegianHolidays(year) {
-  easterDates = calcEasterDates(year)
-  fixedHolidays = {
+  const easterDates = calcEasterDates(year)
+  const fixedHolidays = {
     newYear: new Date(year, 0, 1),
     workersDay: new Date(year, 4, 1),
     independenceDay: new Date(year, 4, 17),
@@ -106,6 +106,10 @@ function getNorwegianHolidays(year) {
   return { ...easterDates, ...fixedHolidays }
 }
 
+/**
+ * @param {Date} date 
+ * @returns
+ */
 function inWeekend(date) {
   return !(date.getDay() % 6)
 }
@@ -120,7 +124,7 @@ function validateFromToDates(from, to, { fromName = 'from', toName = 'to' } = {}
  * @param {Date} date 
  * @param {Date} from
  * @param {Date} to
- * @returns {boolean}
+ * @returns
  */
 function isBetween(date, from, to) {
   validateFromToDates(from, to)
@@ -132,21 +136,12 @@ function isBetween(date, from, to) {
  * Returned days are total days, so you must subtract saturdaysAndSundays to get work days
  * @param {Date} from
  * @param {Date} to
- * @returns {{
- *  days: number,
- *  monday: number,
- *  tuesday: number,
- *  wednesday: number,
- *  thursday: number,
- *  friday: number,
- *  saturday: number,
- *  sunday: number
- * }}
+ * @returns
  */
 function countDays(from, to) {
   validateFromToDates(from, to)
-  days = 1 + Math.round((to.getTime() - from.getTime()) / 86400000)
-  fromDay = from.getDay()
+  const days = 1 + Math.round((to.getTime() - from.getTime()) / 86400000)
+  const fromDay = from.getDay()
   return {
     days,
     [NUM_TO_DAYS[1]]: Math.floor((days + (fromDay + 5) % 7) / 7),
@@ -163,15 +158,15 @@ function countDays(from, to) {
  * Count business days. Holidays are to be specified.
  * @param {object} from 
  * @param {Date} to 
- * @param {iterable<Date>} holidays 
+ * @param {Iterable<Date>} holidays 
  * @returns 
  */
 function countWorkDays(from, to, holidays = []) {
   validateFromToDates(from, to)
-    ({ days, saturdays, sundays } = countDays(from, to))
+  const { days, saturdays, sundays } = countDays(from, to)
 
   // Use for-of to support generators and such
-  holidaysInBusinessDays = 0
+  let holidaysInBusinessDays = 0
   for (holiday of holidays)
     if (isBetween(holiday, from, to) && !inWeekend(holiday))
       holidaysInBusinessDays++
@@ -181,12 +176,12 @@ function countWorkDays(from, to, holidays = []) {
 
 /**
  * Aggregates array of objects.
- * @param {array<object>} objects, array of objects with identical properties 
- * @param {function} aggregator, function to aggregate values
+ * @param {Array<object>} objects, array of objects with identical properties 
+ * @param {Function} aggregator, function to aggregate values
  * @returns {object}
  */
 function aggregate(objects, aggregator = (x, y) => x + y) {
-  keys = Reflect.ownKeys(objects[0])
+  const keys = Reflect.ownKeys(objects[0])
   return objects.slice(1).reduce((acc, object) =>
     keys.forEach(key => { acc[key] = aggregator(acc[key], object[key]) }) || acc
     , { ...objects[0] })
@@ -200,9 +195,8 @@ function aggregate(objects, aggregator = (x, y) => x + y) {
  */
 function* norwegianHolidaysGenerator(from, to) {
   validateFromToDates(from, to)
-  fromYear = from.getFullYear()
-  toYear = to.getFullYear()
-  for (i of Array(toYear - fromYear + 1).keys())
+  const fromYear = from.getFullYear()
+  for (i of Array(to.getFullYear() - fromYear + 1).keys())
     for (date of Object.values(getNorwegianHolidays(i + fromYear)))
       if (isBetween(date, from, to))
         yield date
@@ -212,17 +206,22 @@ function* norwegianHolidaysGenerator(from, to) {
 
 /**
  * E.g. given monday to friday, return ['saturday', 'sunday']
- * @param {array<Date>} days 
- * @returns {array<Date>}
+ * @param {Array<Date>} days 
+ * @returns
  */
 function getComplementWeekdays(days) {
-  days = new Set(days)
+  const days = new Set(days)
   return Reflect.ownKeys(DAYS_TO_NUM).filter(day => !days.has(day))
 }
 
+/**
+ * @param {Iterable<Date>} holidays 
+ * @param {Array<Date>} workdays 
+ * @returns
+ */
 function countHolidaysInWorkdays(holidays, workdays) {
-  workdaySet = new Set(workdays.map(day => DAYS_TO_NUM[day]))
-  holidaysInWorkdays = 0
+  const workdaySet = new Set(workdays.map(day => DAYS_TO_NUM[day]))
+  let holidaysInWorkdays = 0
   if (holidays)
     for (holiday of holidays)
       if (isBetween(holiday, referenceDate, to) && workdaySet.has(holiday.getDay()))
@@ -232,10 +231,10 @@ function countHolidaysInWorkdays(holidays, workdays) {
 
 /**
  * Get today's date object with zeroed out hours, minutes, seconds and milliseconds
- * @returns {Date}
+ * @returns
  */
 function getToday() {
-  date = new Date()
+  const date = new Date()
   date.setHours(0, 0, 0, 0)
   return date
 }
@@ -246,7 +245,7 @@ function getToday() {
  * @param {number} referenceBalance 
  * @param {Date} to 
  * @param {{workdays: array<string>, holidays?: iterable<Date>}} optionals
- * @returns {number} flex balance
+ * @returns flex balance
  */
 function calcFlexBalance(
   actualHours,
@@ -261,9 +260,9 @@ function calcFlexBalance(
 ) {
   validateFromToDates(referenceDate, to, { fromName: 'referenceDate' })
   const { days: dayCount, ...weekdaysCounts } = countDays(referenceDate, to)
-  holidaysInWorkdays = countHolidaysInWorkdays(holidays, workdays)
-  offdaysCount = getComplementWeekdays(workdays).reduce((acc, day) => acc + weekdaysCounts[day], 0)
-  expectedHours = (dayCount - holidaysInWorkdays - offdaysCount) * workHoursPerDay
+  const holidaysInWorkdays = countHolidaysInWorkdays(holidays, workdays)
+  const offdaysCount = getComplementWeekdays(workdays).reduce((acc, day) => acc + weekdaysCounts[day], 0)
+  const expectedHours = (dayCount - holidaysInWorkdays - offdaysCount) * workHoursPerDay
   return actualHours - expectedHours + referenceBalance
 }
 
@@ -278,11 +277,11 @@ module.exports = {
   DEFAULT_WORKDAYS,
   getComplementWeekdays,
   getNorwegianHolidays,
+  getToday,
   inWeekend,
   isBetween,
   norwegianHolidaysGenerator,
   NUM_TO_DAYS,
   offsetDate,
-  getToday
 }
 
