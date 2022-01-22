@@ -1,7 +1,7 @@
 const { expect } = require("@jest/globals")
 const dateutils = require('./dateutils')
 
-daysIn = {
+const daysIn = {
   january2022: {
     days: 31,
     monday: 5,
@@ -45,32 +45,32 @@ daysIn = {
 }
 
 test('countDays for January 2022 is correct', () => {
-  from = new Date(2022, 0, 1)
-  to = new Date(2022, 0, 31)
+  const from = new Date(2022, 0, 1)
+  const to = new Date(2022, 0, 31)
   expect(dateutils.countDays(from, to)).toEqual(daysIn.january2022)
 })
 
 test('countDays for February 2022 is correct', () => {
-  from = new Date(2022, 1, 1)
-  to = new Date(2022, 1, 28)
+  const from = new Date(2022, 1, 1)
+  const to = new Date(2022, 1, 28)
   expect(dateutils.countDays(from, to)).toEqual(daysIn.february2022)
 })
 
 test('countDays for March 2022 is correct', () => {
-  from = new Date(2022, 2, 1)
-  to = new Date(2022, 2, 31)
+  const from = new Date(2022, 2, 1)
+  const to = new Date(2022, 2, 31)
   expect(dateutils.countDays(from, to)).toEqual(daysIn.march2022)
 })
 
 test('countDays for April 2022 is correct', () => {
-  from = new Date(2022, 3, 1)
-  to = new Date(2022, 3, 30)
+  const from = new Date(2022, 3, 1)
+  const to = new Date(2022, 3, 30)
   expect(dateutils.countDays(from, to)).toEqual(daysIn.april2022)
 })
 
 test('countDays for Jan 1 2022 to April 31 2022 is correct', () => {
-  from = new Date(2022, 0, 1)
-  to = new Date(2022, 3, 30)
+  const from = new Date(2022, 0, 1)
+  const to = new Date(2022, 3, 30)
   expect(dateutils.countDays(from, to)).toEqual(dateutils.aggregate(Object.values(daysIn)))
 })
 
@@ -98,13 +98,13 @@ test('getComplementWeekdays works', () => {
 })
 
 test('calcFlexBalance case 1 ', () => {
-  referenceDate = new Date(2022, 0, 1)
-  referenceBalance = 12.5
-  to = new Date(2022, 0, 31)
-  expectedWorkDays = 21
-  expectedHoursPerDay = 7.5
-  actualHours = 160
-  balance = dateutils.calcFlexBalance(actualHours, referenceDate, referenceBalance, { to })
+  const referenceDate = new Date(2022, 0, 1)
+  const referenceBalance = 12.5
+  const to = new Date(2022, 0, 31)
+  const expectedWorkDays = 21
+  const expectedHoursPerDay = 7.5
+  const actualHours = 160
+  const balance = dateutils.calcFlexBalance(actualHours, referenceDate, referenceBalance, { to })
   expect(balance).toEqual(actualHours - expectedWorkDays * expectedHoursPerDay + referenceBalance)
   expect(balance).toEqual(15)
 })

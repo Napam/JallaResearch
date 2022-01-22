@@ -29,7 +29,7 @@ const NUM_TO_DAYS = {
 /**
  * Based on Python's dateutil easter implementation
  * @param {number} year 
- * @returns {Date} date of easter sunday at given year
+ * @returns date of easter sunday at given year
  */
 function calcEasterSunday(year) {
   if (typeof year !== 'number') {
@@ -51,8 +51,8 @@ function calcEasterSunday(year) {
 /**
  * Offset given date
  * @param {Date} date 
- * @param {object} offsets
- * @returns {Date} new date with offsets
+ * @param offsets
+ * @returns new date with offsets
  */
 function offsetDate(
   date,
@@ -71,7 +71,7 @@ function offsetDate(
 
 /**
  * Returns easter days respective to given year
- * @param {number} year >= 1970
+ * @param {number} year must be greater or equal to 1970
  * @returns
  */
 function calcEasterDates(year) {
@@ -155,26 +155,6 @@ function countDays(from, to) {
 }
 
 /**
- * Count business days. Holidays are to be specified.
- * @param {object} from 
- * @param {Date} to 
- * @param {Iterable<Date>} holidays 
- * @returns 
- */
-function countWorkDays(from, to, holidays = []) {
-  validateFromToDates(from, to)
-  const { days, saturdays, sundays } = countDays(from, to)
-
-  // Use for-of to support generators and such
-  let holidaysInBusinessDays = 0
-  for (holiday of holidays)
-    if (isBetween(holiday, from, to) && !inWeekend(holiday))
-      holidaysInBusinessDays++
-
-  return days - saturdays - sundays - holidaysInBusinessDays
-}
-
-/**
  * Aggregates array of objects.
  * @param {Array<object>} objects, array of objects with identical properties 
  * @param {Function} aggregator, function to aggregate values
@@ -216,7 +196,7 @@ function getComplementWeekdays(days) {
 
 /**
  * @param {Iterable<Date>} holidays 
- * @param {Array<Date>} workdays 
+ * @param {Array<string>} workdays 
  * @returns
  */
 function countHolidaysInWorkdays(holidays, workdays) {
@@ -276,7 +256,6 @@ module.exports = {
   calcEasterSunday,
   calcFlexBalance,
   countDays,
-  countWorkDays,
   DAYS_TO_NUM,
   DEFAULT_WORKDAYS,
   getComplementWeekdays,
