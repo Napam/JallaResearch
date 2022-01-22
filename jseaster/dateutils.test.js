@@ -73,6 +73,44 @@ test('countDays for Jan 1 2022 to April 31 2022 is correct', () => {
   const to = new Date(2022, 3, 30)
   expect(dateutils.countDays(from, to)).toEqual(dateutils.aggregate(Object.values(daysIn)))
 })
+test('slowCountDays for January 2022 is correct', () => {
+  const from = new Date(2022, 0, 1)
+  const to = new Date(2022, 0, 31)
+  expect(dateutils.slowCountDays(from, to)).toEqual(daysIn.january2022)
+})
+
+test('slowCountDays for February 2022 is correct', () => {
+  const from = new Date(2022, 1, 1)
+  const to = new Date(2022, 1, 28)
+  expect(dateutils.slowCountDays(from, to)).toEqual(daysIn.february2022)
+})
+
+test('slowCountDays for March 2022 is correct', () => {
+  const from = new Date(2022, 2, 1)
+  const to = new Date(2022, 2, 31)
+  expect(dateutils.slowCountDays(from, to)).toEqual(daysIn.march2022)
+})
+
+test('slowCountDays for April 2022 is correct', () => {
+  const from = new Date(2022, 3, 1)
+  const to = new Date(2022, 3, 30)
+  expect(dateutils.slowCountDays(from, to)).toEqual(daysIn.april2022)
+})
+
+test('slowCountDays for Jan 1 2022 to April 31 2022 is correct', () => {
+  const from = new Date(2022, 0, 1)
+  const to = new Date(2022, 3, 30)
+  expect(dateutils.slowCountDays(from, to)).toEqual(dateutils.aggregate(Object.values(daysIn)))
+})
+
+test('slowCountDays and countDays agrees', () => {
+  randInt = max => Math.floor(Math.random() * max);
+  for (let i = 0; i < 100; i++) {
+    const from = new Date(1970 + randInt(100), randInt(11), randInt(31))
+    const to = dateutils.offsetDate(from, { days: randInt(10) })
+    expect(dateutils.slowCountDays(from, to)).toEqual(dateutils.countDays(from, to))
+  }
+})
 
 test('calcEasterDates is correct for year 2022', () => {
   expect(dateutils.calcEasterDates(2022)).toEqual({

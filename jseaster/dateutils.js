@@ -28,7 +28,7 @@ const NUM_TO_DAYS = {
 
 /**
  * Based on Python's dateutil easter implementation
- * @param {number} year 
+ * @param {number} year
  * @returns date of easter sunday at given year
  */
 function calcEasterSunday(year) {
@@ -50,13 +50,13 @@ function calcEasterSunday(year) {
 
 /**
  * Offset given date
- * @param {Date} date 
+ * @param {Date} date
  * @param offsets
  * @returns new date with offsets
  */
 function offsetDate(
   date,
-  { years = 0, months = 0, days = 0, hours = 0, minutes = 0, seconds = 0, milliseconds = 0 }
+  { years = 0, months = 0, days = 0, hours = 0, minutes = 0, seconds = 0, milliseconds = 0 } = {}
 ) {
   return new Date(
     date.getFullYear() + years,
@@ -89,7 +89,7 @@ function calcEasterDates(year) {
 }
 
 /**
- * @param {number} year 
+ * @param {number} year
  * @returns
  */
 function getNorwegianHolidays(year) {
@@ -101,19 +101,26 @@ function getNorwegianHolidays(year) {
     christmasEve: new Date(year, 11, 24), // Not necessarily for all workplaces
     christmasDay: new Date(year, 11, 25), // Forste juledag
     boxingDay: new Date(year, 11, 26), // Andre jule dag
-    // newYearsEve: new Date(year, 11, 31)
   }
   return { ...easterDates, ...fixedHolidays }
 }
 
 /**
- * @param {Date} date 
+ * @param {Date} date
  * @returns
  */
 function inWeekend(date) {
   return !(date.getDay() % 6)
 }
 
+
+/**
+ * Assert that from is before to, else throw error
+ * @param {Date} from
+ * @param {Date} to
+ * @param alternativeNames in case you want to change the 'from' and 'to' names in the error message
+ * @returns
+ */
 function validateFromToDates(from, to, { fromName = 'from', toName = 'to' } = {}) {
   if (from.getTime() > to.getTime())
     throw new Error(`"${fromName}" date cannot be later than "${toName}" date`)
@@ -121,7 +128,7 @@ function validateFromToDates(from, to, { fromName = 'from', toName = 'to' } = {}
 
 /**
  * Inclusive 'from' and 'to' dates
- * @param {Date} date 
+ * @param {Date} date
  * @param {Date} from
  * @param {Date} to
  * @returns
@@ -155,8 +162,36 @@ function countDays(from, to) {
 }
 
 /**
+ * Loop based version of countDays. Used for validation in tests.
+ * @param {Date} from
+ * @param {Date} to
+ * @returns
+ */
+function slowCountDays(from, to) {
+  validateFromToDates(from, to)
+  const counts = {
+    days: 0,
+    [NUM_TO_DAYS[1]]: 0,
+    [NUM_TO_DAYS[2]]: 0,
+    [NUM_TO_DAYS[3]]: 0,
+    [NUM_TO_DAYS[4]]: 0,
+    [NUM_TO_DAYS[5]]: 0,
+    [NUM_TO_DAYS[6]]: 0,
+    [NUM_TO_DAYS[0]]: 0
+  }
+
+  curr = offsetDate(from) // Basically do a copy
+  while (curr.getTime() <= to.getTime()) {
+    counts[NUM_TO_DAYS[curr.getDay()]] += 1
+    curr = offsetDate(curr, { days: 1 })
+    counts.days++
+  }
+  return counts
+}
+
+/**
  * Aggregates array of objects.
- * @param {Array<object>} objects, array of objects with identical properties 
+ * @param {Array<object>} objects, array of objects with identical properties
  * @param {Function} aggregator, function to aggregate values
  * @returns {object}
  */
@@ -169,8 +204,8 @@ function aggregate(objects, aggregator = (x, y) => x + y) {
 
 /**
  * Generator returning norwegian holidays between 'from' and 'to' dates
- * @param {Date} from 
- * @param {Date} to 
+ * @param {Date} from
+ * @param {Date} to
  * @returns {Generator<Date, void, void>}
  */
 function* norwegianHolidaysGenerator(from, to) {
@@ -186,7 +221,7 @@ function* norwegianHolidaysGenerator(from, to) {
 
 /**
  * E.g. given monday to friday, return ['saturday', 'sunday']
- * @param {Array<Date>} days 
+ * @param {Array<Date>} days
  * @returns
  */
 function getComplementWeekdays(days) {
@@ -195,17 +230,16 @@ function getComplementWeekdays(days) {
 }
 
 /**
- * @param {Iterable<Date>} holidays 
- * @param {Array<string>} workdays 
+ * @param {Iterable<Date>} holidays
+ * @param {Array<string>} workdays
  * @returns
  */
 function countHolidaysInWorkdays(holidays, workdays) {
   const workdaySet = new Set(workdays.map(day => DAYS_TO_NUM[day]))
   let holidaysInWorkdays = 0
-  if (holidays)
-    for (holiday of holidays)
-      if (workdaySet.has(holiday.getDay()))
-        holidaysInWorkdays++
+  for (holiday of holidays)
+    if (workdaySet.has(holiday.getDay()))
+      holidaysInWorkdays++
   return holidaysInWorkdays
 }
 
@@ -220,13 +254,13 @@ function getToday() {
 }
 
 /**
- * @param {number} actualHours 
- * @param {Date} referenceDate 
- * @param {number} referenceBalance 
+ * @param {number} actualHours
+ * @param {Date} referenceDate
+ * @param {number} referenceBalance
  * @param {{
  *  to: Date,
  *  workdays: Array<string>,
- *  holidays?: Iterable<Date>,
+ *  holidays: Iterable<Date>,
  *  workHoursPerDay: number
  * }} optionals
  * @returns flex balance
@@ -266,5 +300,6 @@ module.exports = {
   norwegianHolidaysGenerator,
   NUM_TO_DAYS,
   offsetDate,
+  slowCountDays
 }
 
