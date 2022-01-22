@@ -210,7 +210,7 @@ function* norwegianHolidaysGenerator(from, to) {
  * @returns
  */
 function getComplementWeekdays(days) {
-  const days = new Set(days)
+  days = new Set(days)
   return Reflect.ownKeys(DAYS_TO_NUM).filter(day => !days.has(day))
 }
 
