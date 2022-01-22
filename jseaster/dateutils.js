@@ -204,7 +204,7 @@ function countHolidaysInWorkdays(holidays, workdays) {
   let holidaysInWorkdays = 0
   if (holidays)
     for (holiday of holidays)
-      if (isBetween(holiday, referenceDate, to) && workdaySet.has(holiday.getDay()))
+      if (workdaySet.has(holiday.getDay()))
         holidaysInWorkdays++
   return holidaysInWorkdays
 }
