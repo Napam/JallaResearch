@@ -243,8 +243,12 @@ function getToday() {
  * @param {number} actualHours 
  * @param {Date} referenceDate 
  * @param {number} referenceBalance 
- * @param {Date} to 
- * @param {{workdays: array<string>, holidays?: iterable<Date>}} optionals
+ * @param {{
+ *  to: Date,
+ *  workdays: Array<string>,
+ *  holidays?: Iterable<Date>,
+ *  workHoursPerDay: number
+ * }} optionals
  * @returns flex balance
  */
 function calcFlexBalance(
