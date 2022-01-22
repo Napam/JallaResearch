@@ -4,43 +4,43 @@ const dateutils = require('./dateutils')
 daysIn = {
   january2022: {
     days: 31,
-    mondays: 5,
-    tuesdays: 4,
-    wednesdays: 4,
-    thursdays: 4,
-    fridays: 4,
-    saturdays: 5,
-    sundays: 5
+    monday: 5,
+    tuesday: 4,
+    wednesday: 4,
+    thursday: 4,
+    friday: 4,
+    saturday: 5,
+    sunday: 5
   },
   february2022: {
     days: 28,
-    mondays: 4,
-    tuesdays: 4,
-    wednesdays: 4,
-    thursdays: 4,
-    fridays: 4,
-    saturdays: 4,
-    sundays: 4
+    monday: 4,
+    tuesday: 4,
+    wednesday: 4,
+    thursday: 4,
+    friday: 4,
+    saturday: 4,
+    sunday: 4
   },
   march2022: {
     days: 31,
-    mondays: 4,
-    tuesdays: 5,
-    wednesdays: 5,
-    thursdays: 5,
-    fridays: 4,
-    saturdays: 4,
-    sundays: 4
+    monday: 4,
+    tuesday: 5,
+    wednesday: 5,
+    thursday: 5,
+    friday: 4,
+    saturday: 4,
+    sunday: 4
   },
   april2022: {
     days: 30,
-    mondays: 4,
-    tuesdays: 4,
-    wednesdays: 4,
-    thursdays: 4,
-    fridays: 5,
-    saturdays: 5,
-    sundays: 4
+    monday: 4,
+    tuesday: 4,
+    wednesday: 4,
+    thursday: 4,
+    friday: 5,
+    saturday: 5,
+    sunday: 4
   }
 }
 
@@ -87,8 +87,24 @@ test('calcEasterDates is correct for year 2022', () => {
   })
 })
 
-test('calcFlextime case 1 ', () => {
+test('getComplementWeekdays works', () => {
+  expect(dateutils.getComplementWeekdays(['saturday', 'sunday'])).toEqual([
+    'monday',
+    'tuesday',
+    'wednesday',
+    'thursday',
+    'friday'
+  ])
+})
+
+test('calcFlexBalance case 1 ', () => {
   referenceDate = new Date(2022, 0, 1)
   referenceBalance = 12.5
-  dateutils.calcFlexBalance(20, referenceDate, referenceBalance)
+  to = new Date(2022, 0, 31)
+  expectedWorkDays = 21
+  expectedHoursPerDay = 7.5
+  actualHours = 160
+  balance = dateutils.calcFlexBalance(actualHours, referenceDate, referenceBalance, { to })
+  expect(balance).toEqual(actualHours - expectedWorkDays * expectedHoursPerDay + referenceBalance)
+  expect(balance).toEqual(15)
 })
