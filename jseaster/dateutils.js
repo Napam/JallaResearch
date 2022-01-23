@@ -1,20 +1,16 @@
-const MONDAY = 'monday'
-const TUESDAY = 'tuesday'
-const WEDNESDAY = 'wednesday'
-const THURSDAY = 'thursday'
-const FRIDAY = 'friday'
-const SATURDAY = 'saturday'
-const SUNDAY = 'sunday'
+// These day constants can be any value as long as they can be used as object keys
+const MONDAY = 1
+const TUESDAY = 2
+const WEDNESDAY = 3
+const THURSDAY = 4
+const FRIDAY = 5
+const SATURDAY = 6
+const SUNDAY = 0
 
-const DEFAULT_WORKDAYS = [
-  MONDAY,
-  TUESDAY,
-  WEDNESDAY,
-  THURSDAY,
-  FRIDAY
-]
-
-const DAYS_TO_NUM = {
+/**
+ * Maps the day constants to Date.prototype.getDate() values
+ */
+const DAY_TO_NUM = {
   [MONDAY]: 1,
   [TUESDAY]: 2,
   [WEDNESDAY]: 3,
@@ -24,7 +20,10 @@ const DAYS_TO_NUM = {
   [SUNDAY]: 0
 }
 
-const NUM_TO_DAYS = {
+/**
+ * Maps the Date.prototype.getDate() values to the day constants
+ */
+const NUM_TO_DAY = {
   1: MONDAY,
   2: TUESDAY,
   3: WEDNESDAY,
@@ -33,6 +32,24 @@ const NUM_TO_DAYS = {
   6: SATURDAY,
   0: SUNDAY
 }
+
+const UNIQUE_DAYS = [
+  MONDAY,
+  TUESDAY,
+  WEDNESDAY,
+  THURSDAY,
+  FRIDAY,
+  SATURDAY,
+  SUNDAY
+]
+
+const DEFAULT_WORKDAYS = [
+  MONDAY,
+  TUESDAY,
+  WEDNESDAY,
+  THURSDAY,
+  FRIDAY
+]
 
 /**
  * Based on Python's dateutil easter implementation
@@ -159,13 +176,13 @@ function countDays(from, to) {
   const fromDay = from.getDay()
   return {
     days,
-    [NUM_TO_DAYS[1]]: Math.floor((days + (fromDay + 5) % 7) / 7),
-    [NUM_TO_DAYS[2]]: Math.floor((days + (fromDay + 4) % 7) / 7),
-    [NUM_TO_DAYS[3]]: Math.floor((days + (fromDay + 3) % 7) / 7),
-    [NUM_TO_DAYS[4]]: Math.floor((days + (fromDay + 2) % 7) / 7),
-    [NUM_TO_DAYS[5]]: Math.floor((days + (fromDay + 1) % 7) / 7),
-    [NUM_TO_DAYS[6]]: Math.floor((days + fromDay) / 7),
-    [NUM_TO_DAYS[0]]: Math.floor((days + (fromDay + 6) % 7) / 7)
+    [MONDAY]: Math.floor((days + (fromDay + 5) % 7) / 7),
+    [TUESDAY]: Math.floor((days + (fromDay + 4) % 7) / 7),
+    [WEDNESDAY]: Math.floor((days + (fromDay + 3) % 7) / 7),
+    [THURSDAY]: Math.floor((days + (fromDay + 2) % 7) / 7),
+    [FRIDAY]: Math.floor((days + (fromDay + 1) % 7) / 7),
+    [SATURDAY]: Math.floor((days + fromDay) / 7),
+    [SUNDAY]: Math.floor((days + (fromDay + 6) % 7) / 7)
   }
 }
 
@@ -179,18 +196,18 @@ function slowCountDays(from, to) {
   validateFromToDates(from, to)
   const counts = {
     days: 0,
-    [NUM_TO_DAYS[1]]: 0,
-    [NUM_TO_DAYS[2]]: 0,
-    [NUM_TO_DAYS[3]]: 0,
-    [NUM_TO_DAYS[4]]: 0,
-    [NUM_TO_DAYS[5]]: 0,
-    [NUM_TO_DAYS[6]]: 0,
-    [NUM_TO_DAYS[0]]: 0
+    [MONDAY]: 0,
+    [TUESDAY]: 0,
+    [WEDNESDAY]: 0,
+    [THURSDAY]: 0,
+    [FRIDAY]: 0,
+    [SATURDAY]: 0,
+    [SUNDAY]: 0
   }
 
   curr = offsetDate(from) // do a copy
   while (curr.getTime() <= to.getTime()) {
-    counts[NUM_TO_DAYS[curr.getDay()]] += 1
+    counts[NUM_TO_DAY[curr.getDay()]] += 1
     curr = offsetDate(curr, { days: 1 })
     counts.days++
   }
@@ -234,7 +251,7 @@ function* norwegianHolidaysGenerator(from, to) {
  */
 function getComplementWeekdays(days) {
   days = new Set(days)
-  return Reflect.ownKeys(DAYS_TO_NUM).filter(day => !days.has(day))
+  return UNIQUE_DAYS.filter(day => !days.has(day))
 }
 
 /**
@@ -243,7 +260,7 @@ function getComplementWeekdays(days) {
  * @returns
  */
 function countHolidaysInWorkdays(holidays, workdays) {
-  const workdaySet = new Set(workdays.map(day => DAYS_TO_NUM[day]))
+  const workdaySet = new Set(workdays)
   let holidaysInWorkdays = 0
   for (holiday of holidays)
     if (workdaySet.has(holiday.getDay()))
@@ -298,7 +315,7 @@ module.exports = {
   calcEasterSunday,
   calcFlexBalance,
   countDays,
-  DAYS_TO_NUM,
+  DAY_TO_NUM,
   DEFAULT_WORKDAYS,
   FRIDAY,
   getComplementWeekdays,
@@ -308,14 +325,15 @@ module.exports = {
   isBetween,
   MONDAY,
   norwegianHolidaysGenerator,
-  NUM_TO_DAYS,
+  NUM_TO_DAY,
   offsetDate,
   SATURDAY,
   slowCountDays,
   SUNDAY,
   THURSDAY,
   TUESDAY,
-  WEDNESDAY
+  WEDNESDAY,
+  UNIQUE_DAYS
 }
 
 if (typeof require !== 'undefined' && require.main === module) {
