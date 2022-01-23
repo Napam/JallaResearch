@@ -303,3 +303,18 @@ module.exports = {
   slowCountDays
 }
 
+if (typeof require !== 'undefined' && require.main === module) {
+  countDaysDraw = (from, to) => ({
+    1: '#'.repeat((from.getDay() + 5) % 7),
+    2: '#'.repeat((from.getDay() + 4) % 7),
+    3: '#'.repeat((from.getDay() + 3) % 7),
+    4: '#'.repeat((from.getDay() + 2) % 7),
+    5: '#'.repeat((from.getDay() + 1) % 7),
+    6: '#'.repeat((from.getDay() + 0) % 7),
+    0: '#'.repeat((from.getDay() + 6) % 7)
+  })
+
+  const from = new Date(2022, 0, 2)
+  const to = offsetDate(from, { days: 7 })
+  console.log(countDaysDraw(from, to))
+}
