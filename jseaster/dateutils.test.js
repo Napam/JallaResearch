@@ -1,5 +1,7 @@
-const { expect } = require("@jest/globals")
-const dateutils = require('./dateutils')
+// const { expect } = require("@jest/globals")
+// const dateutils = require('./dateutils')
+import { expect } from "@jest/globals"
+import dateutils from './dateutils'
 
 test('offsetDate works', () => {
   const date = dateutils.offsetDate(new Date(2022, 11, 18), {
@@ -113,7 +115,7 @@ test('slowCountDays for Jan 1 2022 to April 31 2022 is correct', () => {
 })
 
 test('slowCountDays and countDays agrees on random from/to dates', () => {
-  randInt = max => Math.floor(Math.random() * max);
+  const randInt = max => Math.floor(Math.random() * max);
   for (let i = 0; i < 2048; i++) {
     const from = new Date(1970 + randInt(200), randInt(11), randInt(31))
     const to = dateutils.offsetDate(from, { days: randInt(2920) })

@@ -205,7 +205,7 @@ function slowCountDays(from, to) {
     [SUNDAY]: 0
   }
 
-  curr = offsetDate(from) // do a copy
+  let curr = offsetDate(from) // do a copy
   while (curr.getTime() <= to.getTime()) {
     counts[NUM_TO_DAY[curr.getDay()]] += 1
     curr = offsetDate(curr, { days: 1 })
@@ -236,8 +236,8 @@ function aggregate(objects, aggregator = (x, y) => x + y) {
 function* norwegianHolidaysGenerator(from, to) {
   validateFromToDates(from, to)
   const fromYear = from.getFullYear()
-  for (i of Array(to.getFullYear() - fromYear + 1).keys())
-    for (date of Object.values(getNorwegianHolidays(i + fromYear)))
+  for (let i of Array(to.getFullYear() - fromYear + 1).keys())
+    for (let date of Object.values(getNorwegianHolidays(i + fromYear)))
       if (isBetween(date, from, to))
         yield date
       else
@@ -262,7 +262,7 @@ function getComplementWeekdays(days) {
 function countHolidaysInWorkdays(holidays, workdays) {
   const workdaySet = new Set(workdays)
   let holidaysInWorkdays = 0
-  for (holiday of holidays)
+  for (let holiday of holidays)
     if (workdaySet.has(holiday.getDay()))
       holidaysInWorkdays++
   return holidaysInWorkdays
@@ -309,7 +309,7 @@ function calcFlexBalance(
   return actualHours - expectedHours + referenceBalance
 }
 
-module.exports = {
+export default {
   aggregate,
   calcEasterDates,
   calcEasterSunday,
