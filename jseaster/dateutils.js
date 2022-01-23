@@ -1,11 +1,11 @@
 // These day constants can be any value as long as they can be used as object keys
-const MONDAY = 1
-const TUESDAY = 2
-const WEDNESDAY = 3
-const THURSDAY = 4
-const FRIDAY = 5
-const SATURDAY = 6
-const SUNDAY = 0
+const MONDAY = 'monday'
+const TUESDAY = 'tuesday'
+const WEDNESDAY = 'wednesday'
+const THURSDAY = 'thursday'
+const FRIDAY = 'friday'
+const SATURDAY = 'saturday'
+const SUNDAY = 'sunday'
 
 /**
  * Maps the day constants to Date.prototype.getDate() values
@@ -146,9 +146,9 @@ function inWeekend(date) {
  * @param alternativeNames in case you want to change the 'from' and 'to' names in the error message
  * @returns
  */
-function validateFromToDates(from, to, { fromName = 'from', toName = 'to' } = {}) {
+function validateFromToDates(from, to, { fromAlias = 'from', toAlias = 'to' } = {}) {
   if (from.getTime() > to.getTime())
-    throw new Error(`"${fromName}" date cannot be later than "${toName}" date`)
+    throw new Error(`"${fromAlias}" date cannot be later than "${toAlias}" date`)
 }
 
 /**
@@ -301,7 +301,7 @@ function calcFlexBalance(
     workHoursPerDay = 7.5
   } = {}
 ) {
-  validateFromToDates(referenceDate, to, { fromName: 'referenceDate' })
+  validateFromToDates(referenceDate, to, { fromAlias: 'referenceDate' })
   const { days: dayCount, ...weekdaysCounts } = countDays(referenceDate, to)
   const holidaysInWorkdays = countHolidaysInWorkdays(holidays, workdays)
   const offdaysCount = getComplementWeekdays(workdays).reduce((acc, day) => acc + weekdaysCounts[day], 0)
