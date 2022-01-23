@@ -1,6 +1,15 @@
 const { expect } = require("@jest/globals")
 const dateutils = require('./dateutils')
 
+test('offsetDate works', () => {
+  const date = dateutils.offsetDate(new Date(2022, 11, 18), {
+    years: 2,
+    months: -4,
+    days: 7
+  })
+  expect(date).toEqual(new Date(2024, 7, 25))
+})
+
 const daysIn = {
   january2022: {
     days: 31,
@@ -103,11 +112,11 @@ test('slowCountDays for Jan 1 2022 to April 31 2022 is correct', () => {
   expect(dateutils.slowCountDays(from, to)).toEqual(dateutils.aggregate(Object.values(daysIn)))
 })
 
-test('slowCountDays and countDays agrees', () => {
+test('slowCountDays and countDays agrees on random from/to dates', () => {
   randInt = max => Math.floor(Math.random() * max);
-  for (let i = 0; i < 100; i++) {
-    const from = new Date(1970 + randInt(100), randInt(11), randInt(31))
-    const to = dateutils.offsetDate(from, { days: randInt(10) })
+  for (let i = 0; i < 2048; i++) {
+    const from = new Date(1970 + randInt(200), randInt(11), randInt(31))
+    const to = dateutils.offsetDate(from, { days: randInt(2920) })
     expect(dateutils.slowCountDays(from, to)).toEqual(dateutils.countDays(from, to))
   }
 })
@@ -135,7 +144,7 @@ test('getComplementWeekdays works', () => {
   ])
 })
 
-test('calcFlexBalance case 1 ', () => {
+test('calcFlexBalance test case 1 ', () => {
   const referenceDate = new Date(2022, 0, 1)
   const referenceBalance = 12.5
   const to = new Date(2022, 0, 31)

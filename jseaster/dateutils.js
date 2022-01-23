@@ -157,7 +157,7 @@ function countDays(from, to) {
     [NUM_TO_DAYS[4]]: Math.floor((days + (fromDay + 2) % 7) / 7),
     [NUM_TO_DAYS[5]]: Math.floor((days + (fromDay + 1) % 7) / 7),
     [NUM_TO_DAYS[6]]: Math.floor((days + fromDay % 7) / 7),
-    [NUM_TO_DAYS[0]]: Math.floor((days + (fromDay - 1) % 7) / 7)
+    [NUM_TO_DAYS[0]]: Math.floor((days + (fromDay + 6) % 7) / 7)
   }
 }
 
@@ -180,7 +180,7 @@ function slowCountDays(from, to) {
     [NUM_TO_DAYS[0]]: 0
   }
 
-  curr = offsetDate(from) // Basically do a copy
+  curr = offsetDate(from) // do a copy
   while (curr.getTime() <= to.getTime()) {
     counts[NUM_TO_DAYS[curr.getDay()]] += 1
     curr = offsetDate(curr, { days: 1 })
