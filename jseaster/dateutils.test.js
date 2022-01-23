@@ -13,43 +13,43 @@ test('offsetDate works', () => {
 const daysIn = {
   january2022: {
     days: 31,
-    monday: 5,
-    tuesday: 4,
-    wednesday: 4,
-    thursday: 4,
-    friday: 4,
-    saturday: 5,
-    sunday: 5
+    [dateutils.MONDAY]: 5,
+    [dateutils.TUESDAY]: 4,
+    [dateutils.WEDNESDAY]: 4,
+    [dateutils.THURSDAY]: 4,
+    [dateutils.FRIDAY]: 4,
+    [dateutils.SATURDAY]: 5,
+    [dateutils.SUNDAY]: 5
   },
   february2022: {
     days: 28,
-    monday: 4,
-    tuesday: 4,
-    wednesday: 4,
-    thursday: 4,
-    friday: 4,
-    saturday: 4,
-    sunday: 4
+    [dateutils.MONDAY]: 4,
+    [dateutils.TUESDAY]: 4,
+    [dateutils.WEDNESDAY]: 4,
+    [dateutils.THURSDAY]: 4,
+    [dateutils.FRIDAY]: 4,
+    [dateutils.SATURDAY]: 4,
+    [dateutils.SUNDAY]: 4
   },
   march2022: {
     days: 31,
-    monday: 4,
-    tuesday: 5,
-    wednesday: 5,
-    thursday: 5,
-    friday: 4,
-    saturday: 4,
-    sunday: 4
+    [dateutils.MONDAY]: 4,
+    [dateutils.TUESDAY]: 5,
+    [dateutils.WEDNESDAY]: 5,
+    [dateutils.THURSDAY]: 5,
+    [dateutils.FRIDAY]: 4,
+    [dateutils.SATURDAY]: 4,
+    [dateutils.SUNDAY]: 4
   },
   april2022: {
     days: 30,
-    monday: 4,
-    tuesday: 4,
-    wednesday: 4,
-    thursday: 4,
-    friday: 5,
-    saturday: 5,
-    sunday: 4
+    [dateutils.MONDAY]: 4,
+    [dateutils.TUESDAY]: 4,
+    [dateutils.WEDNESDAY]: 4,
+    [dateutils.THURSDAY]: 4,
+    [dateutils.FRIDAY]: 5,
+    [dateutils.SATURDAY]: 5,
+    [dateutils.SUNDAY]: 4
   }
 }
 
@@ -135,12 +135,12 @@ test('calcEasterDates is correct for year 2022', () => {
 })
 
 test('getComplementWeekdays works', () => {
-  expect(dateutils.getComplementWeekdays(['saturday', 'sunday'])).toEqual([
-    'monday',
-    'tuesday',
-    'wednesday',
-    'thursday',
-    'friday'
+  expect(dateutils.getComplementWeekdays([dateutils.SATURDAY, dateutils.SUNDAY])).toEqual([
+    dateutils.MONDAY,
+    dateutils.TUESDAY,
+    dateutils.WEDNESDAY,
+    dateutils.THURSDAY,
+    dateutils.FRIDAY
   ])
 })
 

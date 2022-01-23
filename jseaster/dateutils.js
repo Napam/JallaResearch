@@ -1,29 +1,37 @@
+const MONDAY = 'monday'
+const TUESDAY = 'tuesday'
+const WEDNESDAY = 'wednesday'
+const THURSDAY = 'thursday'
+const FRIDAY = 'friday'
+const SATURDAY = 'saturday'
+const SUNDAY = 'sunday'
+
 const DEFAULT_WORKDAYS = [
-  'monday',
-  'tuesday',
-  'wednesday',
-  'thursday',
-  'friday'
+  MONDAY,
+  TUESDAY,
+  WEDNESDAY,
+  THURSDAY,
+  FRIDAY
 ]
 
 const DAYS_TO_NUM = {
-  'monday': 1,
-  'tuesday': 2,
-  'wednesday': 3,
-  'thursday': 4,
-  'friday': 5,
-  'saturday': 6,
-  'sunday': 0
+  [MONDAY]: 1,
+  [TUESDAY]: 2,
+  [WEDNESDAY]: 3,
+  [THURSDAY]: 4,
+  [FRIDAY]: 5,
+  [SATURDAY]: 6,
+  [SUNDAY]: 0
 }
 
 const NUM_TO_DAYS = {
-  1: 'monday',
-  2: 'tuesday',
-  3: 'wednesday',
-  4: 'thursday',
-  5: 'friday',
-  6: 'saturday',
-  0: 'sunday'
+  1: MONDAY,
+  2: TUESDAY,
+  3: WEDNESDAY,
+  4: THURSDAY,
+  5: FRIDAY,
+  6: SATURDAY,
+  0: SUNDAY
 }
 
 /**
@@ -292,15 +300,22 @@ module.exports = {
   countDays,
   DAYS_TO_NUM,
   DEFAULT_WORKDAYS,
+  FRIDAY,
   getComplementWeekdays,
   getNorwegianHolidays,
   getToday,
   inWeekend,
   isBetween,
+  MONDAY,
   norwegianHolidaysGenerator,
   NUM_TO_DAYS,
   offsetDate,
-  slowCountDays
+  SATURDAY,
+  slowCountDays,
+  SUNDAY,
+  THURSDAY,
+  TUESDAY,
+  WEDNESDAY
 }
 
 if (typeof require !== 'undefined' && require.main === module) {
