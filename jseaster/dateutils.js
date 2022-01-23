@@ -156,7 +156,7 @@ function countDays(from, to) {
     [NUM_TO_DAYS[3]]: Math.floor((days + (fromDay + 3) % 7) / 7),
     [NUM_TO_DAYS[4]]: Math.floor((days + (fromDay + 2) % 7) / 7),
     [NUM_TO_DAYS[5]]: Math.floor((days + (fromDay + 1) % 7) / 7),
-    [NUM_TO_DAYS[6]]: Math.floor((days + fromDay % 7) / 7),
+    [NUM_TO_DAYS[6]]: Math.floor((days + fromDay) / 7),
     [NUM_TO_DAYS[0]]: Math.floor((days + (fromDay + 6) % 7) / 7)
   }
 }
