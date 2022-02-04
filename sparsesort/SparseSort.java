@@ -57,8 +57,16 @@ class SparseSort {
         nodes.put("I", Arrays.asList("J"));
         nodes.put("J", Arrays.asList("H"));
         Map<String, Set<String>> graph = getDescendantsGraph(nodes);
+        Map<String, Integer> counter = new HashMap<>();
+        for (Set<String> descendants : graph.values()) {
+            for (String descendant : descendants) {
+                counter.putIfAbsent(descendant, 0);
+                counter.compute(descendant, (k, v) -> v + 1);
+            }
+        }
         System.out.println(graph);
-        // sort(nodes.keySet().stream().collect(Collectors.toList()), dependencyGraph);
+        System.out.println(counter);
+        sort(new ArrayList<>(nodes.keySet()), counter);
     }
 
     public static void simple() {
