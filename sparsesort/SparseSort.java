@@ -63,7 +63,7 @@ class SparseSort {
         children.put("F", Arrays.asList("D"));
         children.put("G", Arrays.asList());
         children.put("H", Arrays.asList("I"));
-        children.put("I", Arrays.asList("J"));
+        children.put("I", Arrays.asList("J", "D"));
         children.put("J", Arrays.asList("H"));
     }
 

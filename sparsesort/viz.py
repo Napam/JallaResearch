@@ -25,7 +25,8 @@ G.add_edges_from([
     ["F", "D"],
     ["H", "I"],
     ["I", "J"],
-    ["J", "H"],
+    ["I", "D"],
+    ["J", "H"]
 ])
 options = {
     "font_size": 20,
