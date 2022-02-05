@@ -7,87 +7,100 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 
 class SparseSort {
     public static void main(String[] args) {
-        // simple();
+        System.out.println("simple");
+        simple();
+        System.out.println();
+        System.out.println("graph1");
         graph1();
         System.out.println();
+        System.out.println("graph2");
         graph2();
+        System.out.println();
+        System.out.println("graph3");
+        graph3();
     }
 
     public static <T> Set<T> getDescendants(
         T curr, 
-        Map<T, List<T>> nodes,
-        Map<T, Set<T>> graph
+        Map<T, List<T>> children,
+        Map<T, Set<T>> descendants
     ) {
-        Set<T> descendantsOfCurr = graph.get(curr);
+        Set<T> descendantsOfCurr = descendants.get(curr);
         if (descendantsOfCurr != null)
             return descendantsOfCurr;
 
         descendantsOfCurr = new HashSet<>();
-        graph.put(curr, descendantsOfCurr);
-        for (T child : nodes.get(curr)) {
+        descendants.put(curr, descendantsOfCurr);
+        for (T child : children.get(curr)) {
             descendantsOfCurr.add(child);
-            descendantsOfCurr.addAll(getDescendants(child, nodes, graph));
+            descendantsOfCurr.addAll(getDescendants(child, children, descendants));
         }
-
+        
         return descendantsOfCurr;
     }
 
-    public static <T> Map<T, Set<T>> getDescendantsGraph(Map<T, List<T>> nodes) {
-        LinkedHashMap<T, Set<T>> graph = new LinkedHashMap<>();
-        nodes.entrySet().forEach(entry -> getDescendants(entry.getKey(), nodes, graph));    
-        return graph;
+    public static <T> Map<T, Set<T>> getDescendantsGraph(Map<T, List<T>> children) {
+        LinkedHashMap<T, Set<T>> descendants = new LinkedHashMap<>();
+        children.entrySet().forEach(entry -> getDescendants(entry.getKey(), children, descendants));    
+        return descendants;
     }
+
+    public static LinkedHashMap<String, List<String>> children = new LinkedHashMap<>();
+
+    static {
+        children.put("A", Arrays.asList("B"));
+        children.put("B", Arrays.asList("C", "E"));
+        children.put("C", Arrays.asList());
+        children.put("D", Arrays.asList("E"));
+        children.put("E", Arrays.asList("C"));
+        children.put("F", Arrays.asList("D"));
+        children.put("G", Arrays.asList());
+        children.put("H", Arrays.asList("I"));
+        children.put("I", Arrays.asList("J"));
+        children.put("J", Arrays.asList("H"));
+    }
+
     
     public static void graph1() {
-        LinkedHashMap<String, List<String>> nodes = new LinkedHashMap<>();
-        nodes.put("A", Arrays.asList("B"));
-        nodes.put("B", Arrays.asList("C", "E"));
-        nodes.put("C", Arrays.asList());
-        nodes.put("D", Arrays.asList("E"));
-        nodes.put("E", Arrays.asList("C"));
-        nodes.put("F", Arrays.asList("D"));
-        nodes.put("G", Arrays.asList());
-        nodes.put("H", Arrays.asList("I"));
-        nodes.put("I", Arrays.asList("J"));
-        nodes.put("J", Arrays.asList("H"));
-        Map<String, Set<String>> graph = getDescendantsGraph(nodes);
+        Map<String, Set<String>> children_ = getDescendantsGraph(children);
         Map<String, Integer> counter = new HashMap<>();
-        for (Set<String> descendants : graph.values()) {
+        for (Set<String> descendants : children_.values()) {
             for (String descendant : descendants) {
                 counter.putIfAbsent(descendant, 0);
                 counter.compute(descendant, (k, v) -> v + 1);
             }
         }
-        System.out.println(graph);
+        System.out.println(children_);
         System.out.println(counter);
-        sort(new ArrayList<>(nodes.keySet()), counter);
+        sort(new ArrayList<>(children_.keySet()), counter);
     }
     
     public static void graph2() {
-        LinkedHashMap<String, List<String>> graph = new LinkedHashMap<>();
-        graph.put("A", Arrays.asList("B"));
-        graph.put("B", Arrays.asList("C", "E"));
-        graph.put("C", Arrays.asList());
-        graph.put("D", Arrays.asList("E"));
-        graph.put("E", Arrays.asList("C"));
-        graph.put("F", Arrays.asList("D"));
-        graph.put("G", Arrays.asList());
-        graph.put("H", Arrays.asList("I"));
-        graph.put("I", Arrays.asList("J"));
-        graph.put("J", Arrays.asList("H"));
-        graph = reverseEdges(graph);
-        Map<String, Integer> counts = countDescendantsGraph(graph);
-        System.out.println(graph);
+        Map<String, List<String>> children_ = reverseEdges(children);
+        Map<String, Integer> counts = countDescendantsGraph(children_);
+        System.out.println(children_);
         System.out.println(counts);
-        sort(new ArrayList<>(graph.keySet()), counts);
+        sort(new ArrayList<>(children_.keySet()), counts);
+    }
+    
+    public static void graph3() {
+        Map<String, List<String>> children_ = reverseEdges(children);
+        Map<String, Set<String>> parentTable = getDescendantsGraph(children_);
+        Map<String, Integer> counts = new HashMap<>();
+        parentTable.forEach((node, parents) -> counts.put(node, parents.size()));
+        System.out.println(parentTable);
+        System.out.println(counts);
+        sort(new ArrayList<>(children_.keySet()), counts);
     }
 
-    public static <T> LinkedHashMap<T, List<T>> reverseEdges(Map<T, List<T>> graph) {
+    public static <T> Map<T, List<T>> reverseEdges(Map<T, List<T>> graph) {
         LinkedHashMap<T, List<T>> newGraph =  new LinkedHashMap<>();
         for (Entry<T, List<T>> entry : graph.entrySet()) {
             T parent = entry.getKey();
@@ -123,27 +136,21 @@ class SparseSort {
     }
 
     public static void simple() {
-        List<String> strings = Arrays.asList(
-            "A",
-            "B",
-            "C",
-            "D",
-            "E",
-            "F"
-        );
-    
+        List<String> strings = Stream.concat(children.keySet().stream(), children.keySet().stream()).collect(Collectors.toList());
         List<String> ordering = Arrays.asList(
-            "B",
-            "A"
+            "C",
+            "A",
+            "G",
+            "E",
+            "D"
         );
-    
         HashMap<String, Integer> map = new HashMap<>();
         IntStream.range(0, ordering.size()).forEach(i -> map.put(ordering.get(i), i));
         sort(strings, map);
     }
     
-    public static void sort(List<String> strings, Map<String, Integer> precedenceTable) {
-        strings.sort((l, r) -> precedenceTable.getOrDefault(l, -1) - precedenceTable.getOrDefault(r, -1) );
+    public static void sort(List<String> strings, Map<String, Integer> priority) {
+        strings.sort((right, left) -> priority.getOrDefault(right, 0) - priority.getOrDefault(left, 0));
         System.out.println(strings);
     }
 }
