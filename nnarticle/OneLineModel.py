@@ -5,6 +5,8 @@ from torch import nn
 from torch import optim
 from matplotlib import pyplot as plt
 
+from utils import get_lims
+
 def mse(y_: torch.Tensor, y: torch.Tensor):
     assert y_.shape == y.shape
     return ((y_ - y) ** 2).mean()
@@ -25,7 +27,7 @@ class OneLineModel(nn.Module):
 
 
     def fit(self, X: torch.Tensor, y: torch.Tensor):
-        optimizer = optim.Adam(self.parameters(), lr=1e-1)
+        optimizer = optim.Adam(self.parameters(), lr=1e-2)
         criterion = mse
 
         losses = []
@@ -49,18 +51,19 @@ class OneLineModel(nn.Module):
         w_0, (w_1, w_2) = self.line.bias.detach().numpy().item(), self.line.weight.detach().numpy()[0]
         a, b = - w_1 / w_2, w_0 / w_2
 
-        xspace = torch.tensor([X[:,0].min(), X[:,0].max()])
+        xspace = torch.tensor([X[:,0].min() * 0.5, X[:,0].max() * 1.5])
         s_1, s_2 = X_std
         m_1, m_2 = X_mean
-        
-        print(s_1, s_2)
-        print(m_1, m_2)
 
         a = (s_2 / s_1) * a
         b = b*s_2 + m_2 - a * m_1
         print(a, b)
-        plt.plot(xspace, a * xspace + b)
         plt.scatter(*X.T, c=y)
+        plt.plot(xspace, a * xspace + b)
+
+        xlim, ylim = get_lims(X)
+        plt.xlim(*xlim)
+        plt.ylim(*ylim)
         plt.show()
 
 
