@@ -13,12 +13,79 @@ $$
 \end{align}
 $$
 
-### Un-normalize model
+### Un-normalize a model
+Let $f(x)=ax+b,\hspace{0.5em}a,b\in\mathbb{R}$. Let $p_1, p_2 \in \mathbb{R}^2$ be two arbitrary different points that lies on $f$. Both points gets scaled by $s\in\mathbb{R}^2$ then offset by $m\in\mathbb{R}^2$. Let $p_1', p_2'$ be the transformed versions of $p_1, p_2$ respectively. Find $g(x) = a'x + b'$, where $a',b'$ are determined such that $g$ intercepts both $p_1', p_2'$.
+
+Choose the points that lies on each axes:
+$$
+p_{1} =
+\begin{bmatrix}
+    p_{11} \\
+    p_{12}
+\end{bmatrix}
+=
+\begin{bmatrix}
+    0 \\
+    b
+\end{bmatrix},
+\quad
+p_{2} =
+\begin{bmatrix}
+    p_{21} \\
+    p_{22}
+\end{bmatrix}
+=
+\begin{bmatrix}
+    -b/a \\
+    0
+\end{bmatrix}
+$$
+
+The transformed points would then be:
+$$
+p_{1}' =
+\begin{bmatrix}
+    p_{11}' \\
+    p_{12}'
+\end{bmatrix}
+=
+\begin{bmatrix}
+    m_1 \\
+    bs_2+m_2
+\end{bmatrix},
+\quad
+p_{2} =
+\begin{bmatrix}
+    p_{21}' \\
+    p_{22}'
+\end{bmatrix}
+=
+\begin{bmatrix}
+    (-b/a)s_1 + m_1 \\
+    m_2
+\end{bmatrix}
+$$
+
+Now we can simply find the slope $a'$ and intersection $b'$ given the points $p_1', p_2'$:
+$$
+\begin{aligned}
+    a' &= \frac{m_2 - (bs_2 + m_2)}{(-b/a)s_1 + m_1 - m1} \\
+    a' &= \frac{-bs_2}{-bs_1/a} \\
+    \Rightarrow a' &= \frac{s_2}{s_1}a
+\end{aligned}
+\qquad
+\begin{aligned}
+    bs_2 + m_2 &= a'm_1 + b' \\
+    \Rightarrow b' &= bs_2 + m_2 - a'm_1
+\end{aligned}
+$$
+
+### Normalize a model
 Let $f(x) = ax + b$. $f$ intercepts the two different arbitrary points $p_1, p_2$ when $x$ is $x_1, x_2$ respectively. Both points gets offset by $m\in\mathbb{R}^2$ then scaled by $s\in\mathbb{R}^2$, how do you adjust $a$ and $b$ such that $f$ still intersects each point by only using information about $m, s, a, b$?
 
 Can basically choose any points as long as they are different and intersects with $f$. Choose
 $$
-p_1 = 
+p_1 =
 \begin{bmatrix}
     x_1 \\
     y_1
@@ -29,7 +96,7 @@ p_1 =
     b
 \end{bmatrix}
 ,\quad
-p_2 = 
+p_2 =
 \begin{bmatrix}
     x_2 \\
     y_2
@@ -80,16 +147,8 @@ Then for intercept $b'$
 $$
 \begin{aligned}
     y &= a'x + b' \\
-    \Rightarrow s_2m_2 &= a'(-s_1b/a + s_1m_1) + b' \\
-    \Rightarrow b' &= s_2m_2 - a'(-s_1b/a + s_1m_1)
-\end{aligned}
-$$
-Then for intercept $b'$
-$$
-\begin{aligned}
-    y &= a'x + b' \\
     \Rightarrow s_2b+s_2m_2 &= a's_1m_1 + b' \\
-    \Rightarrow b' &= s_2b + s_2m_2 - a's_1m_1 
+    \Rightarrow b' &= s_2b + s_2m_2 - a's_1m_1
 \end{aligned}
 $$
 <!-- $$
@@ -110,7 +169,7 @@ $$
 $$ -->
 
 ### 1-Line Model
-Model parameters: 
+Model parameters:
 - $W\in\mathbb{R}^{1\times2}$
 - $b\in\mathbb{R}$
 
@@ -124,20 +183,20 @@ Train algorithm:
     \end{align}
     $$
 
-1. Compute mean squared error loss: 
+1. Compute mean squared error loss:
     $$
     L = \frac{1}{N}\sum_{i} (\hat{y}_i - y_i)^2
     $$
 
-1. Compute gradients for $W$: 
+1. Compute gradients for $W$:
     $$
     \begin{align}
         \frac{\partial}{\partial W} L(\underbrace{\sigma(\overbrace{WX^T +b}^{z})}_{\hat{y}}) &= \frac{\partial L}{\partial\hat{y}} \frac{\partial\sigma}{\partial z} \frac{\partial z}{\partial W}\\
-        \frac{\partial}{\partial W} L(\underbrace{\sigma(\overbrace{WX^T +b}^{z})}_{\hat{y}}) &= \frac{\partial L}{\partial\hat{y}} \frac{\partial\sigma}{\partial z} X^T 
+        \frac{\partial}{\partial W} L(\underbrace{\sigma(\overbrace{WX^T +b}^{z})}_{\hat{y}}) &= \frac{\partial L}{\partial\hat{y}} \frac{\partial\sigma}{\partial z} X^T
         \\
         \frac{\partial}{\partial W} L(\underbrace{\sigma(\overbrace{WX^T +b}^{z})}_{\hat{y}}) &= \frac{\partial L}{\partial\hat{y}} \frac{e^{-z}}{(1+e^{-z})^2} X^T
         \\
         \frac{\partial}{\partial W} L(\underbrace{\sigma(\overbrace{WX^T +b}^{z})}_{\hat{y}}) &= \frac{2}{N}\sum_{i}(\hat{y}_i - y_i) \frac{e^{-z}}{(1+e^{-z})^2} X^T
     \end{align}
     $$
-    
+

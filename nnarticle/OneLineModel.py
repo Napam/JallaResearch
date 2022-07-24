@@ -57,9 +57,8 @@ class OneLineModel(nn.Module):
         print(m_1, m_2)
 
         a = (s_2 / s_1) * a
-        b = s_2 * b + s_2 * m_2 - a * s_1 * m_1
+        b = b*s_2 + m_2 - a * m_1
         print(a, b)
-        plt.plot(xspace, a * xspace + 32)
         plt.plot(xspace, a * xspace + b)
         plt.scatter(*X.T, c=y)
         plt.show()
