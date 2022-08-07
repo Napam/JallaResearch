@@ -1,13 +1,6 @@
-import torch
 from matplotlib import pyplot as plt
-from numpy.typing import ArrayLike
 import numpy as np
-
-def get_lims(X: torch.Tensor, padding: float = 0.25):
-    x_min, x_max = X[:,0].min(), X[:,0].max()
-    y_min, y_max = X[:,1].min(), X[:,1].max()
-    x_std, y_std = X[:,0].std(), X[:,1].std()
-    return (x_min - x_std * padding, x_max + x_std * padding), (y_min - y_std * padding, y_max + y_std * padding)
+from numpy.typing import ArrayLike
 
 
 def plotHyperplane(xspace: ArrayLike, intercept: float, xslope: float, yslope: float, n: int = 3, ax: plt.Axes = None, **kwargs):
@@ -19,6 +12,13 @@ def plotHyperplane(xspace: ArrayLike, intercept: float, xslope: float, yslope: f
     xmin, xmax = xspace.min(), xspace.max()
     diff = xmax - xmin
     arrowxs = np.linspace(xmin + diff * 0.15, xmax - diff * 0.15, n)
-    for arrowx in arrowxs:
-        plt.arrow(arrowx, f(arrowx), xslope, yslope, **kwargs)
+    plt.quiver(arrowxs, f(arrowxs), xslope, yslope)
     return ax
+
+xspace = np.linspace(-10, 10, 10)
+ax = plotHyperplane(xspace, 0, 1, 1, width=0.1)
+ax = plotHyperplane(xspace, -2, 1, -1, n=5, width=0.1)
+ax.set_aspect('equal')
+# ax.set_xlim((-10,10))
+# ax.set_ylim((-10,10))
+plt.show()

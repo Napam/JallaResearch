@@ -48,8 +48,8 @@ class OneLineModel(nn.Module):
 
     def plot(self, X: torch.Tensor, y: torch.Tensor, X_mean: torch.Tensor, X_std: torch.Tensor):
         X = X * X_std + X_mean
-        w_0, (w_1, w_2) = self.line.bias.detach().numpy().item(), self.line.weight.detach().numpy()[0]
-        a, b = - w_1 / w_2, w_0 / w_2
+        intercept, (xslope, yslope) = self.line.bias.detach().numpy().item(), self.line.weight.detach().numpy()[0]
+        a, b = - xslope / yslope, - intercept / yslope
 
         xspace = torch.tensor([X[:,0].min() * 0.5, X[:,0].max() * 1.5])
         s_1, s_2 = X_std

@@ -13,7 +13,7 @@ $$
 \end{align}
 $$
 
-### Un-normalize a model
+### Un-normalize a model of the form $ax + b$
 Let $f(x)=ax+b,\hspace{0.5em}a,b\in\mathbb{R}$. Let $p_1, p_2 \in \mathbb{R}^2$ be two arbitrary different points that lies on $f$. Both points gets scaled by $s\in\mathbb{R}^2$ then offset by $m\in\mathbb{R}^2$. Let $p_1', p_2'$ be the transformed versions of $p_1, p_2$ respectively. Find $g(x) = a'x + b'$, where $a',b'$ are determined such that $g$ intercepts both $p_1', p_2'$.
 
 Choose the points that lies on each axes:
@@ -79,6 +79,29 @@ $$
     \Rightarrow b' &= bs_2 + m_2 - a'm_1
 \end{aligned}
 $$
+
+### Un-normalize a model of the form $w_0 + w_1x_1 + w_2x_2$
+Let $f(x, y) = w_0 + w_1x + w_2y$ be a hyperplane embedded in $\mathbb{R}^3$. Let $p_1, p_2 \in \mathbb{R}^2$ be two arbitrary different points that lies on the domain of $f$. Both points gets scaled by $s\in\mathbb{R}^2$ then offset by $m\in\mathbb{R}^2$. Let $p_1', p_2'$ be the transformed versions of $p_1, p_2$ respectively. Find $g(x, y) = w_0' + w_1'x + w_2'y$ such that $g(p_1') = f(p_1)$ and $g(p_2') = f(p_2)$
+<!-- Obtaining a line in the form $y = ax + b$ given a hyperplane $w_0 + w_1x_1 + w_2x_2 = 0$ can be achieved by simply isolating $x_2$
+$$
+\begin{aligned}
+    w_2x_2 &= -w_0 - w_1x_1 \\
+    x_2 &= -\frac{w_1}{w_2}x_1 - \frac{w_0}{w_2}
+\end{aligned}
+$$
+Let $y = x_2$, $x = x_1$, and it is clear that it is in the form $y = ax+ b $
+$$
+y = -\frac{w_1}{w_2}x - \frac{w_0}{w_2}
+$$
+where
+$$ 
+a = -\frac{w_1}{w_2},\quad b = - \frac{w_0}{w_2} 
+$$
+From above we can "unnormalize" the line by doing
+$$
+a' = \frac{s_2}{s_1} a,\quad b' = bs_2 + m_2 - a'm_1
+$$ -->
+
 
 ### Normalize a model
 Let $f(x) = ax + b$. $f$ intercepts the two different arbitrary points $p_1, p_2$ when $x$ is $x_1, x_2$ respectively. Both points gets offset by $m\in\mathbb{R}^2$ then scaled by $s\in\mathbb{R}^2$, how do you adjust $a$ and $b$ such that $f$ still intersects each point by only using information about $m, s, a, b$?
