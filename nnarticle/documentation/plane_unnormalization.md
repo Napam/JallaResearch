@@ -120,3 +120,11 @@ $$
     w_2' &= \frac{w_2}{s_2}
 \end{aligned}
 $$
+I suspect I am messing up some signs somewhere, because in the code this will work:
+$$
+\begin{aligned}
+    w_0' &= - w_0 + \frac{m_1 w_1}{s_1} + \frac{m_2 w_2}{s_2} \\
+    w_1' &= \frac{w_1}{s_1} \\
+    w_2' &= \frac{w_2}{s_2}
+\end{aligned}
+$$
