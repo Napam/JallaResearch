@@ -29,7 +29,7 @@ X, y = make_blobs([30, 30], centers, [[6,1], [6,1]])
 df = pd.DataFrame({
     "weight": X[:,0],
     "height": X[:,1],
-    "class": np.vectorize({0: "apple", 1: "orange"}.get)(y)
+    "class": np.vectorize({0: "orange", 1: "apple"}.get)(y)
 })
 print(df)
 df.to_csv("datasets/apples_and_oranges.csv", index=False)

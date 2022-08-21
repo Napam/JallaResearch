@@ -6,7 +6,7 @@ from torch import optim
 from matplotlib import pyplot as plt
 
 from utils import get_lims
-from LineWithDirection import plotHyperplane
+from LineWithDirection import plot_hyperplane
 
 def mse(y_: torch.Tensor, y: torch.Tensor):
     assert y_.shape == y.shape
@@ -61,15 +61,16 @@ class OnePlaneModel(nn.Module):
         print(a, b)
         plt.scatter(*X.T, c=y)
 
-        intercept_ = - intercept + (m_1 * xslope) / s_1 + (m_2 * yslope) / s_2
+        intercept_ = intercept - (m_1 * xslope) / s_1 - (m_2 * yslope) / s_2
+        # intercept_ = - intercept + (m_1 * xslope) / s_1 + (m_2 * yslope) / s_2
         xslope_ = xslope / s_1
         yslope_ = yslope / s_2
-        plotHyperplane(xspace, intercept_, xslope_, yslope_, 16)
-        # plt.plot(xspace, a * xspace + b)
+        plot_hyperplane(xspace, intercept_, xslope_, yslope_, 16, units='dots')
+        plt.plot(xspace, a * xspace + b)
 
         xlim, ylim = get_lims(X, padding = 0.5)
-        plt.xlim(*xlim)
-        plt.ylim(*ylim)
+        # plt.xlim(*xlim)
+        # plt.ylim(*ylim)
         plt.gca().set_aspect('equal')
         plt.show()
 
