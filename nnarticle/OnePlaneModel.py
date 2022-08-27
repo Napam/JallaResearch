@@ -23,8 +23,6 @@ class OnePlaneModel(nn.Module):
     def __init__(self):
         super().__init__()
         self.plane = nn.Linear(in_features=2, out_features=1)
-        self.X_mean: Optional[torch.Tensor] = None
-        self.X_std: Optional[torch.Tensor] = None
 
     def forward(self, X: torch.Tensor):
         return torch.sigmoid(self.plane(X))
@@ -74,8 +72,7 @@ df = pd.read_csv("datasets/apples_and_oranges.csv")
 model = OnePlaneModel()
 
 X_raw = torch.tensor(df[["weight", "height"]].values, dtype=torch.float32)
-y = torch.tensor(df["class"].map(
-    {"apple": 0, "orange": 1}).values, dtype=torch.float32)
+y = torch.tensor(df["class"].map({"apple": 0, "orange": 1}).values, dtype=torch.float32)
 
 X, X_mean, X_std = normalize_data(X_raw)
 

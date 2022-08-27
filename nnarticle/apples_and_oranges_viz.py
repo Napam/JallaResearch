@@ -54,8 +54,9 @@ def visualize_data_set_with_unknown_point_and_line():
     intercept = 0.06541142612695694
     xslope = 1.0689597
     yslope = 1.5919806
-    s = [6.5687, 1.5144]
+
     m = [135.7327, 6.8887]
+    s = [6.5687, 1.5144]
 
     xspace = torch.linspace(x_lim[0], x_lim[1], 4)
     intercept_, xslope_, yslope_ = unnormalize_plane(m, s, intercept, xslope, yslope)
