@@ -13,6 +13,9 @@ $$
 \end{align}
 $$
 
+### Even quivers
+Suppose you have two points $p_1, p_2 \in \mathbb{R}^2$. Find points the $p_1', p_2', \ldots, p_n'$ that lies between $p_1, p_2$ such that $||p_i' - p_{i+1}'||_2 = d$. The points $p_i'$ should not be equal 
+
 ### 1-Line Model
 Model parameters:
 - $W\in\mathbb{R}^{1\times2}$
