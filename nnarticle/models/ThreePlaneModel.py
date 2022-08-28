@@ -1,12 +1,14 @@
-from typing import Optional
 import torch
 import pandas as pd
 from torch import nn
 from torch import optim
 from matplotlib import pyplot as plt
-from torch.nn.functional import binary_cross_entropy, one_hot
-from utils import get_lims, normalize_data, plot_hyperplane, unnormalize_plane
+from torch.nn.functional import one_hot
 import sys
+import os
+sys.path.insert(1, os.path.join(sys.path[0], '..'))
+
+from utils import get_lims, normalize_data, plot_hyperplane, unnormalize_plane
 
 
 def mse(y_: torch.Tensor, y: torch.Tensor):
@@ -24,13 +26,10 @@ def accuracy(y_: torch.Tensor, y: torch.Tensor):
 class TwoPlaneModel(nn.Module):
     def __init__(self):
         super().__init__()
-        self.plane1 = nn.Linear(in_features=2, out_features=1)
-        self.plane2 = nn.Linear(in_features=2, out_features=1)
+        self.planes = nn.Linear(in_features=2, out_features=3)
 
     def forward(self, X: torch.Tensor):
-        y_ = torch.sigmoid(torch.cat([self.plane1(X), self.plane2(X)], dim=1))
-        # Add column as a pseudo-node to represent missing plane for class 1 (which should be orange)
-        return torch.column_stack([y_[:, 0], (y_ < 0.5).all(1) * (1 - y_.sum(1) / 2), y_[:, 1]])
+        return torch.sigmoid(self.planes(X))
 
     def fit(self, X: torch.Tensor, y: torch.Tensor):
         optimizer = optim.Adam(self.parameters(), lr=1e-2)
@@ -54,8 +53,10 @@ class TwoPlaneModel(nn.Module):
 
     def plot(self, X: torch.Tensor, y: torch.Tensor, X_mean: torch.Tensor, X_std: torch.Tensor):
         X = X * X_std + X_mean
-        intercept1, (xslope1, yslope1) = self.plane1.bias.detach().numpy().item(), self.plane1.weight.detach().numpy()[0]
-        intercept2, (xslope2, yslope2) = self.plane2.bias.detach().numpy().item(), self.plane2.weight.detach().numpy()[0]
+        biases, planes = self.planes.bias.detach(), self.planes.weight.detach().numpy()
+        intercept1, (xslope1, yslope1) = biases[0].item(), planes[0]
+        intercept2, (xslope2, yslope2) = biases[1].item(), planes[1]
+        intercept3, (xslope3, yslope3) = biases[2].item(), planes[2]
         xspace = torch.tensor([X[:, 0].min() * 0.75, X[:, 0].max() * 1.25])
 
         print('LOG:\x1b[33mDEBUG\x1b[0m:', 'intercept1:', intercept1)
@@ -69,8 +70,10 @@ class TwoPlaneModel(nn.Module):
         plt.scatter(*X.T, c=y)
         intercept_1, xslope_1, yslope_1 = unnormalize_plane(X_mean, X_std, intercept1, xslope1, yslope1)
         intercept_2, xslope_2, yslope_2 = unnormalize_plane(X_mean, X_std, intercept2, xslope2, yslope2)
+        intercept_3, xslope_3, yslope_3 = unnormalize_plane(X_mean, X_std, intercept3, xslope3, yslope3)
         plot_hyperplane(xspace, intercept_1, xslope_1, yslope_1, 16, c='red', quiver_kwargs={'scale': 0.05, 'units': 'dots', 'width': 2})
         plot_hyperplane(xspace, intercept_2, xslope_2, yslope_2, 16, c='blue', quiver_kwargs={'scale': 0.05, 'units': 'dots', 'width': 2})
+        plot_hyperplane(xspace, intercept_3, xslope_3, yslope_3, 16, c='green', quiver_kwargs={'scale': 0.05, 'units': 'dots', 'width': 2})
 
         xlim, ylim = get_lims(X, padding=0.5)
         plt.xlim(*xlim)
@@ -79,7 +82,7 @@ class TwoPlaneModel(nn.Module):
         plt.show()
 
 
-df = pd.read_csv("datasets/apples_oranges_pears.csv")
+df = pd.read_csv("../datasets/apples_oranges_pears.csv")
 model = TwoPlaneModel()
 
 X_raw = torch.tensor(df[["weight", "height"]].values, dtype=torch.float32)
