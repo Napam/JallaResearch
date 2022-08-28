@@ -67,13 +67,17 @@ class TwoPlaneModel(nn.Module):
         print('LOG:\x1b[33mDEBUG\x1b[0m:', 'xslope2:', xslope2)
         print('LOG:\x1b[33mDEBUG\x1b[0m:', 'yslope2:', yslope2)
 
+        print('LOG:\x1b[33mDEBUG\x1b[0m:', 'intercept3:', intercept3)
+        print('LOG:\x1b[33mDEBUG\x1b[0m:', 'xslope3:', xslope3)
+        print('LOG:\x1b[33mDEBUG\x1b[0m:', 'yslope3:', yslope3)
+
         plt.scatter(*X.T, c=y)
         intercept_1, xslope_1, yslope_1 = unnormalize_plane(X_mean, X_std, intercept1, xslope1, yslope1)
         intercept_2, xslope_2, yslope_2 = unnormalize_plane(X_mean, X_std, intercept2, xslope2, yslope2)
         intercept_3, xslope_3, yslope_3 = unnormalize_plane(X_mean, X_std, intercept3, xslope3, yslope3)
         plot_hyperplane(xspace, intercept_1, xslope_1, yslope_1, 16, c='red', quiver_kwargs={'scale': 0.05, 'units': 'dots', 'width': 2})
-        plot_hyperplane(xspace, intercept_2, xslope_2, yslope_2, 16, c='blue', quiver_kwargs={'scale': 0.05, 'units': 'dots', 'width': 2})
-        plot_hyperplane(xspace, intercept_3, xslope_3, yslope_3, 16, c='green', quiver_kwargs={'scale': 0.05, 'units': 'dots', 'width': 2})
+        plot_hyperplane(xspace, intercept_2, xslope_2, yslope_2, 16, c='green', quiver_kwargs={'scale': 0.05, 'units': 'dots', 'width': 2})
+        plot_hyperplane(xspace, intercept_3, xslope_3, yslope_3, 16, c='blue', quiver_kwargs={'scale': 0.05, 'units': 'dots', 'width': 2})
 
         xlim, ylim = get_lims(X, padding=0.5)
         plt.xlim(*xlim)
