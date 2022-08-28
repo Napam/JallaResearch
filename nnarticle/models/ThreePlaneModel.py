@@ -23,7 +23,7 @@ def accuracy(y_: torch.Tensor, y: torch.Tensor):
     return (y_ == y).sum() / len(y)
 
 
-class TwoPlaneModel(nn.Module):
+class ThreePlaneModel(nn.Module):
     def __init__(self):
         super().__init__()
         self.planes = nn.Linear(in_features=2, out_features=3)
@@ -87,7 +87,7 @@ class TwoPlaneModel(nn.Module):
 
 
 df = pd.read_csv("../datasets/apples_oranges_pears.csv")
-model = TwoPlaneModel()
+model = ThreePlaneModel()
 
 X_raw = torch.tensor(df[["weight", "height"]].values, dtype=torch.float32)
 y_raw = torch.tensor(df["class"].map({"apple": 0, "orange": 1, "pear": 2}).values, dtype=torch.long)

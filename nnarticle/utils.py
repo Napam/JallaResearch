@@ -22,10 +22,11 @@ def plot_hyperplane(
         yslope: float,
         n: int = 3,
         ax: plt.Axes = None,
-        c=None,
-        alpha=None,
-        plot_kwargs=None,
-        quiver_kwargs=None
+        unit_plane: bool = True,
+        c: str = None,
+        alpha: float = None,
+        plot_kwargs: dict = None,
+        quiver_kwargs: dict = None
 ):
 
     plot_kwargs = plot_kwargs or {}
@@ -48,10 +49,12 @@ def plot_hyperplane(
     xmin, xmax = xspace.min(), xspace.max()
     diff = (xmax - xmin) / (n + 1)
     arrowxs = np.linspace(xmin + diff, xmax - diff, n)
-    norm = np.linalg.norm([xslope, yslope])
+
+    norm = 1
+    if unit_plane:
+        norm = np.linalg.norm([xslope, yslope])
+
     plt.quiver(arrowxs, f(arrowxs), xslope / norm, yslope / norm, **quiver_kwargs)
-    print(xmin, xmax)
-    print(arrowxs.min(), arrowxs.max())
     return ax
 
 
@@ -67,6 +70,13 @@ def unnormalize_plane(m: ArrayLike, s: ArrayLike, intercept: Number, xslope: Num
     xslope_ = xslope / s[0]
     yslope_ = yslope / s[1]
     return intercept_, xslope_, yslope_
+
+
+def unnormalize_planes(m: ArrayLike, s: ArrayLike, intercepts: ArrayLike, slopes: ArrayLike):
+    intercepts, slopes = np.copy(intercepts), np.copy(slopes)
+    intercepts = intercepts - (m[0] * slopes[:, 0]) / s[0] - (m[1] * slopes[:, 1]) / s[1]
+    slopes = slopes / s
+    return intercepts, slopes
 
 
 if __name__ == '__main__':
