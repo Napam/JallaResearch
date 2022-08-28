@@ -32,7 +32,7 @@ def visualize_data_set_with_unknown_point():
     plt.title("Comparing apples and oranges with an unknown")
     plt.scatter(*X[y == 0].T, label="Apple", marker="^", c="greenyellow", edgecolor="black")
     plt.scatter(*X[y == 1].T, label="Orange", marker="o", c="orange", edgecolor="black")
-    plt.scatter([130], [5.5], label="Unknown", marker="x", c="black")
+    plt.scatter([130], [5.5], label="Unknown", marker="x", c="black", s=80)
     plt.legend(loc="upper right")
     plt.xlim(*x_lim)
     plt.ylim(*y_lim)
@@ -49,18 +49,18 @@ def visualize_data_set_with_unknown_point_and_line():
     plt.title("Comparing apples and oranges with an unknown and a decision boundary")
     plt.scatter(*X[y == 0].T, label="Apple", marker="^", c="greenyellow", edgecolor="black")
     plt.scatter(*X[y == 1].T, label="Orange", marker="o", c="orange", edgecolor="black")
-    plt.scatter([130], [5.5], label="Unknown", marker="x", c="black")
+    plt.scatter([130], [5.5], label="Unknown", marker="x", c="black", s=80)
 
-    intercept = 0.06541142612695694
-    xslope = 1.0689597
-    yslope = 1.5919806
+    intercept = -0.014510540291666985
+    xslope = 1.6574535
+    yslope = 0.6743076
 
-    m = [135.7327, 6.8887]
-    s = [6.5687, 1.5144]
+    m = [135.7327, 6.8051]
+    s = [6.5687, 2.1522]
 
     xspace = torch.linspace(x_lim[0], x_lim[1], 4)
     intercept_, xslope_, yslope_ = unnormalize_plane(m, s, intercept, xslope, yslope)
-    plot_hyperplane(xspace, intercept_, xslope_, yslope_, 3, c='k', alpha=0.75, quiver_kwargs={
+    plot_hyperplane(xspace, intercept_, xslope_, yslope_, 5, c='k', alpha=0.75, quiver_kwargs={
                     'units': 'dots', 'width': 1.75, 'scale': 0.075, 'scale_units': 'dots'})
     plt.legend(loc="upper right")
     plt.xlim(*x_lim)

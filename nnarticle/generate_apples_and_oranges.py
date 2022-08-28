@@ -26,7 +26,7 @@ avg_apple_weight = 130  # gram
 
 centers = [[avg_orange_weight, avg_orange_diameter], [avg_apple_weight, avg_apple_diameter]]
 
-X, y = make_blobs([30, 30], centers, [[4.5, 1]] * len(centers))
+X, y = make_blobs([30] * len(centers), centers, [[4.5, 1.75]] * len(centers))
 
 df = pd.DataFrame({
     "weight": X[:, 0],

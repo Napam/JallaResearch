@@ -4,6 +4,9 @@ import pandas as pd
 from torch import nn
 from torch import optim
 from matplotlib import pyplot as plt
+import sys
+import os
+sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
 from utils import get_lims, normalize_data, plot_hyperplane, unnormalize_plane
 # from LineWithDirection import plot_hyperplane

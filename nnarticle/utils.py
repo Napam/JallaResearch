@@ -48,7 +48,8 @@ def plot_hyperplane(
     xmin, xmax = xspace.min(), xspace.max()
     diff = (xmax - xmin) / (n + 1)
     arrowxs = np.linspace(xmin + diff, xmax - diff, n)
-    plt.quiver(arrowxs, f(arrowxs), xslope, yslope, **quiver_kwargs)
+    norm = np.linalg.norm([xslope, yslope])
+    plt.quiver(arrowxs, f(arrowxs), xslope / norm, yslope / norm, **quiver_kwargs)
     print(xmin, xmax)
     print(arrowxs.min(), arrowxs.max())
     return ax
