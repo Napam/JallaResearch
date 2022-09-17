@@ -26,7 +26,8 @@ def plot_hyperplane(
         c: str = None,
         alpha: float = None,
         plot_kwargs: dict = None,
-        quiver_kwargs: dict = None
+        quiver_kwargs: dict = None,
+        return_artists: bool = False
 ):
 
     plot_kwargs = plot_kwargs or {}
@@ -44,7 +45,7 @@ def plot_hyperplane(
 
     a, b = - xslope / yslope, - intercept / yslope
     def f(x): return a * x + b
-    plt.plot(xspace, f(xspace), **plot_kwargs)
+    line = plt.plot(xspace, f(xspace), **plot_kwargs)
 
     xmin, xmax = xspace.min(), xspace.max()
     diff = (xmax - xmin) / (n + 1)
@@ -54,8 +55,11 @@ def plot_hyperplane(
     if unit_plane:
         norm = np.linalg.norm([xslope, yslope])
 
-    plt.quiver(arrowxs, f(arrowxs), xslope / norm, yslope / norm, **quiver_kwargs)
-    return ax
+    arrows = plt.quiver(arrowxs, f(arrowxs), xslope / norm, yslope / norm, **quiver_kwargs)
+    if return_artists:
+        return ax, {'line': line, 'arrows': arrows}
+    else:
+        return ax
 
 
 def normalize_data(X: ArrayLike):

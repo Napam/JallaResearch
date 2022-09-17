@@ -2,6 +2,8 @@ import torch
 import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
+from matplotlib.animation import FuncAnimation
+import math
 
 from utils import get_lims, plot_hyperplane, unnormalize_plane, unnormalize_planes
 plt.rcParams.update({'font.family': 'serif', 'mathtext.fontset': 'dejavuserif'})
@@ -245,7 +247,111 @@ def visualize_strengths():
     plt.clf()
 
 
+def visualize_strengths_animated():
+    fig, ax = plt.subplots(1, 1)
+    ax.set_xlabel("Weight (g)")
+    ax.set_ylabel("Diameter (cm)")
+    fig.suptitle("Strengths")
+
+    intercepts = np.array([
+        -0.08808770030736923,
+        -0.09143412113189697,
+        -0.09384874999523163
+    ])
+
+    slopes = np.array(
+        [[-0.19972077, -0.03343868],
+         [-0.021978999, 0.14851315],
+         [0.20376714, -0.11762319]]
+    )
+
+    m = np.array([141.8463, 6.2363])
+    s = np.array([10.5088, 1.7896])
+
+    uintercepts, uslopes = unnormalize_planes(m, s, intercepts, slopes)
+
+    point = np.array([[140, 6]])
+    scatter = ax.scatter(*point.T, label="Unknown", marker="x", c="black", s=60)
+
+    def forward(X, intercepts, slopes):
+        z = intercepts + X @ slopes.T
+        z = z + abs(z.min())
+        z = z ** 2 / z.sum()
+        return z
+
+    strengths = forward(point, uintercepts, uslopes)[0]
+
+    xspace = torch.linspace(x_lim[0], x_lim[1], 4)
+
+    plot_kwargs = {}
+    quiver_kwargs = {'units': 'dots', 'width': 1.75, 'headwidth': 4, 'scale': 0.075, 'scale_units': 'dots'}
+
+    linestyles = [
+        None,
+        '-.',
+        '--'
+    ]
+
+    labels = [
+        'Apple boundary',
+        'Orange boundary',
+        'Pear boundary'
+    ]
+
+    colors = [
+        'greenyellow',
+        'orange',
+        'forestgreen'
+    ]
+
+    plane_artists = {}
+
+    for i, (linestyle, label, color) in enumerate(zip(linestyles, labels, colors)):
+        _, artists = plot_hyperplane(
+            xspace,
+            uintercepts[i],
+            *uslopes[i],
+            8,
+            c=color,
+            plot_kwargs={**plot_kwargs, 'linestyle': linestyle, 'linewidth': max(strengths[i] * 10, 0.1), 'label': label},
+            quiver_kwargs={**quiver_kwargs, 'scale': max((1 - strengths[i]) * 0.25, 0.05)},
+            return_artists=True
+        )
+        plane_artists[label] = artists
+
+    line0 = plane_artists[labels[0]]['line']
+    line1 = plane_artists[labels[1]]['line']
+    line2 = plane_artists[labels[2]]['line']
+    arrows0 = plane_artists[labels[0]]['arrows']
+    arrows1 = plane_artists[labels[1]]['arrows']
+    arrows2 = plane_artists[labels[2]]['arrows']
+
+    n = 60
+    point = np.array([[0, 0]], dtype=float)
+    centerx = np.mean(x_lim)
+    centery = np.mean(y_lim)
+
+    def step(i):
+        point[0, 0] = centerx + 20 * math.cos(i * 0.009)
+        point[0, 1] = centery + 5 * math.sin(i * 0.009)
+        scatter.set_offsets(point)
+        return (scatter,)
+
+    # plt.legend(loc="upper right")
+    ax.set_xlim(*x_lim)
+    ax.set_ylim(*y_lim)
+    ax.set_aspect('equal')
+    fig.set_figheight(4)
+    fig.set_figwidth(10)
+    # plt.savefig("figures/apples_oranges_pears_strengths.pdf")
+    anim = FuncAnimation(fig, step, blit=True, interval=0)
+    plt.show()
+    plt.clf()
+    print(plane_artists)
+
+
 # visualize_data_set()
 # visualize_two_lines()
 # visualize_three_lines()
-visualize_strengths()
+# visualize_strengths()
+visualize_strengths_animated()
