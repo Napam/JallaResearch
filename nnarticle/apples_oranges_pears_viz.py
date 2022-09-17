@@ -1,3 +1,4 @@
+from pprint import pprint
 import torch
 import pandas as pd
 import numpy as np
@@ -270,8 +271,8 @@ def visualize_strengths_animated():
 
     uintercepts, uslopes = unnormalize_planes(m, s, intercepts, slopes)
 
-    point = np.array([[140, 6]])
-    scatter = ax.scatter(*point.T, label="Unknown", marker="x", c="black", s=60)
+    point = np.array([[140, 6]], dtype=float)
+    scatter = ax.scatter(*point.T, label="Unknown", marker="x", c="black", s=60, zorder=100)
 
     def forward(X, intercepts, slopes):
         z = intercepts + X @ slopes.T
@@ -280,7 +281,6 @@ def visualize_strengths_animated():
         return z
 
     strengths = forward(point, uintercepts, uslopes)[0]
-
     xspace = torch.linspace(x_lim[0], x_lim[1], 4)
 
     plot_kwargs = {}
@@ -288,8 +288,8 @@ def visualize_strengths_animated():
 
     linestyles = [
         None,
-        '-.',
-        '--'
+        None,
+        None
     ]
 
     labels = [
@@ -319,9 +319,9 @@ def visualize_strengths_animated():
         )
         plane_artists[label] = artists
 
-    line0 = plane_artists[labels[0]]['line']
-    line1 = plane_artists[labels[1]]['line']
-    line2 = plane_artists[labels[2]]['line']
+    line0 = plane_artists[labels[0]]['line'][0]
+    line1 = plane_artists[labels[1]]['line'][0]
+    line2 = plane_artists[labels[2]]['line'][0]
     arrows0 = plane_artists[labels[0]]['arrows']
     arrows1 = plane_artists[labels[1]]['arrows']
     arrows2 = plane_artists[labels[2]]['arrows']
@@ -331,11 +331,22 @@ def visualize_strengths_animated():
     centerx = np.mean(x_lim)
     centery = np.mean(y_lim)
 
+    # pprint(dir(arrows0))
+    # exit()
+
     def step(i):
-        point[0, 0] = centerx + 20 * math.cos(i * 0.009)
-        point[0, 1] = centery + 5 * math.sin(i * 0.009)
+        point[0, 0] = centerx + 20 * math.cos(i * 0.004)
+        point[0, 1] = centery + 5 * math.sin(i * 0.004)
+        z = forward(point, uintercepts, uslopes)[0]
         scatter.set_offsets(point)
-        return (scatter,)
+        line0.set_linewidth(max(z[0] * 20, 1))
+        line1.set_linewidth(max(z[1] * 20, 1))
+        line2.set_linewidth(max(z[2] * 20, 1))
+        arrows0.scale = max((1 - z[0]) * 0.1, 0.05)
+        arrows1.scale = max((1 - z[1]) * 0.1, 0.05)
+        arrows2.scale = max((1 - z[2]) * 0.1, 0.05)
+
+        return (scatter, line0, line1, line2, arrows0, arrows1, arrows2)
 
     # plt.legend(loc="upper right")
     ax.set_xlim(*x_lim)
@@ -347,7 +358,6 @@ def visualize_strengths_animated():
     anim = FuncAnimation(fig, step, blit=True, interval=0)
     plt.show()
     plt.clf()
-    print(plane_artists)
 
 
 # visualize_data_set()
