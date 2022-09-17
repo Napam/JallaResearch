@@ -32,7 +32,7 @@ class ThreePlaneModel(nn.Module):
         return torch.sigmoid(self.planes(X))
 
     def fit(self, X: torch.Tensor, y: torch.Tensor):
-        optimizer = optim.Adam(self.parameters(), lr=1e-2)
+        optimizer = optim.Adam(self.parameters(), lr=1e-2, weight_decay=0.25)
         criterion = mse
 
         losses = []

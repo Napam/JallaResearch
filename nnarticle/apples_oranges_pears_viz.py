@@ -171,15 +171,15 @@ def visualize_strengths():
     # plt.scatter(*X[y == 2].T, label="Pear", marker="s", c="forestgreen", edgecolor="black", s=20, alpha=0.1)
 
     intercepts = np.array([
-        -1.360250473022461,
-        -1.2119554281234741,
-        -1.4134321212768555
+        -0.08808770030736923,
+        -0.09143412113189697,
+        -0.09384874999523163
     ])
 
     slopes = np.array(
-        [[-3.2235553, -1.1162834],
-         [0.63510317, 2.3010178],
-         [2.7407901, -1.087009]]
+        [[-0.19972077, -0.03343868],
+         [-0.021978999, 0.14851315],
+         [0.20376714, -0.11762319]]
     )
 
     m = np.array([141.8463, 6.2363])
@@ -187,16 +187,15 @@ def visualize_strengths():
 
     uintercepts, uslopes = unnormalize_planes(m, s, intercepts, slopes)
 
-    point = np.array([[125, 6]])
+    point = np.array([[140, 6]])
     plt.scatter(*point.T, label="Unknown", marker="x", c="black", s=60)
 
     def forward(X, intercepts, slopes):
         z = intercepts + X @ slopes.T
-        # z = np.log(z)
-        z = (z + abs(z.min())).clip(0.01, np.inf)
-        z = np.sqrt(z)
         print('LOG:\x1b[33mDEBUG\x1b[0m:', 'z:', z)
-        return z / z.sum()
+        z = z + abs(z.min())
+        z = z ** 2 / z.sum()
+        return z
 
     strengths = forward(point, uintercepts, uslopes)[0]
     print('LOG:\x1b[33mDEBUG\x1b[0m:', 'strengths:', strengths)
