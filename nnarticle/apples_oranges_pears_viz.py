@@ -1,9 +1,11 @@
 from pprint import pprint
+import sys
 import torch
 import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
+from matplotlib import patches
 import math
 
 from utils import get_lims, plot_hyperplane, unnormalize_plane, unnormalize_planes
@@ -15,6 +17,23 @@ x_lim, y_lim = get_lims(X, padding=[0.75, 1.5])
 
 
 def visualize_data_set():
+    plt.xlabel("Weight (g)")
+    plt.ylabel("Diameter (cm)")
+    plt.title("Comparing apples, oranges and pears")
+    plt.scatter(*X[y == 0].T, label="Apple", marker="^", c="greenyellow", edgecolor="black")
+    plt.scatter(*X[y == 1].T, label="Orange", marker="o", c="orange", edgecolor="black")
+    plt.scatter(*X[y == 2].T, label="Pear", marker="s", c="forestgreen", edgecolor="black", s=20)
+    plt.legend(loc="upper right")
+    plt.xlim(*x_lim)
+    plt.ylim(*y_lim)
+    plt.gca().set_aspect('equal')
+    plt.gcf().set_figheight(10)
+    plt.gcf().set_figwidth(10)
+    plt.savefig("figures/apples_oranges_pears.pdf")
+    plt.clf()
+
+
+def visualize_data_set_with_orange_line():
     plt.xlabel("Weight (g)")
     plt.ylabel("Diameter (cm)")
     plt.title("Comparing apples, oranges and pears")
@@ -249,11 +268,6 @@ def visualize_strengths():
 
 
 def visualize_strengths_animated():
-    fig, ax = plt.subplots(1, 1)
-    ax.set_xlabel("Weight (g)")
-    ax.set_ylabel("Diameter (cm)")
-    fig.suptitle("Strengths")
-
     intercepts = np.array([
         -0.08808770030736923,
         -0.09143412113189697,
@@ -271,90 +285,92 @@ def visualize_strengths_animated():
 
     uintercepts, uslopes = unnormalize_planes(m, s, intercepts, slopes)
 
-    point = np.array([[140, 6]], dtype=float)
-    scatter = ax.scatter(*point.T, label="Unknown", marker="x", c="black", s=60, zorder=100)
-
-    def forward(X, intercepts, slopes):
-        z = intercepts + X @ slopes.T
-        z = z + abs(z.min())
-        z = z ** 2 / z.sum()
-        return z
-
-    strengths = forward(point, uintercepts, uslopes)[0]
-    xspace = torch.linspace(x_lim[0], x_lim[1], 4)
-
     plot_kwargs = {}
-    quiver_kwargs = {'units': 'dots', 'width': 1.75, 'headwidth': 4, 'scale': 0.075, 'scale_units': 'dots'}
+    quiver_kwargs = {'units': 'dots', 'width': 2, 'headwidth': 8, 'scale': 0.075, 'scale_units': 'dots'}
 
-    linestyles = [
-        None,
-        None,
-        None
-    ]
+    classes = ['Apple', 'Orange', 'Pear']
+    labels = ['Apple boundary', 'Orange boundary', 'Pear boundary']
+    colors = ['greenyellow', 'orange', 'forestgreen']
 
-    labels = [
-        'Apple boundary',
-        'Orange boundary',
-        'Pear boundary'
-    ]
+    fig, (ax1, ax2) = plt.subplots(2, 1)
 
-    colors = [
-        'greenyellow',
-        'orange',
-        'forestgreen'
-    ]
-
-    plane_artists = {}
-
-    for i, (linestyle, label, color) in enumerate(zip(linestyles, labels, colors)):
+    lines = []
+    quivers = []
+    xspace = np.linspace(x_lim[0], x_lim[1], 4)
+    for i, (label, color) in enumerate(zip(labels, colors)):
         _, artists = plot_hyperplane(
             xspace,
             uintercepts[i],
             *uslopes[i],
             8,
             c=color,
-            plot_kwargs={**plot_kwargs, 'linestyle': linestyle, 'linewidth': max(strengths[i] * 10, 0.1), 'label': label},
-            quiver_kwargs={**quiver_kwargs, 'scale': max((1 - strengths[i]) * 0.25, 0.05)},
-            return_artists=True
+            plot_kwargs={**plot_kwargs, 'label': label},
+            quiver_kwargs=quiver_kwargs,
+            return_artists=True,
+            ax=ax1
         )
-        plane_artists[label] = artists
+        lines.append(artists['line'][0])
+        quivers.append(artists['arrows'])
 
-    line0 = plane_artists[labels[0]]['line'][0]
-    line1 = plane_artists[labels[1]]['line'][0]
-    line2 = plane_artists[labels[2]]['line'][0]
-    arrows0 = plane_artists[labels[0]]['arrows']
-    arrows1 = plane_artists[labels[1]]['arrows']
-    arrows2 = plane_artists[labels[2]]['arrows']
-
-    n = 60
     point = np.array([[0, 0]], dtype=float)
+    scatter = ax1.scatter(*point.T, label="Unknown", marker="x", c="black", s=60, zorder=100)
     centerx = np.mean(x_lim)
     centery = np.mean(y_lim)
 
-    # pprint(dir(arrows0))
-    # exit()
+    circles = []
+    circletexts = []
+    for pos, color, name in zip([(-0.75, 0.75), (-0.75, 0), (-0.75, -0.75)], colors, ['Appleness', 'Orangeness', 'Pearness']):
+        circle = patches.Circle(pos, 0.30, color=color)
+        ax2.add_patch(circle)
+        circles.append(circle)
+        circletexts.append(ax2.annotate('0', xy=pos, fontsize=14, ha="center", va="center"))
+        ax2.annotate(f"{name}:", xy=(pos[0] - 2, pos[1]), fontsize=14, va="center")
+
+    currclasstext = ax2.annotate("Current prediction", xy=(1, 0.75), fontsize=14)
+    currclasscircle = patches.Circle((2, 0), 0.5, color='orange')
+    currclasstext = ax2.annotate("", xy=(2, 0), ha="center", va="center", fontsize=16)
+    ax2.add_patch(currclasscircle)
+
+    def forward(X, intercepts, slopes):
+        z = intercepts + X @ slopes.T
+        z = z + abs(z.min())
+        z = z ** 2
+        z = z / z.sum()
+        return z
 
     def step(i):
         point[0, 0] = centerx + 20 * math.cos(i * 0.004)
         point[0, 1] = centery + 5 * math.sin(i * 0.004)
-        z = forward(point, uintercepts, uslopes)[0]
+        strengths = forward(point, uintercepts, uslopes)[0]
         scatter.set_offsets(point)
-        line0.set_linewidth(max(z[0] * 20, 1))
-        line1.set_linewidth(max(z[1] * 20, 1))
-        line2.set_linewidth(max(z[2] * 20, 1))
-        arrows0.scale = max((1 - z[0]) * 0.1, 0.05)
-        arrows1.scale = max((1 - z[1]) * 0.1, 0.05)
-        arrows2.scale = max((1 - z[2]) * 0.1, 0.05)
+        for strength, line, quiver, circle, circletext in zip(strengths, lines, quivers, circles, circletexts):
+            line.set_linewidth(max(strength * 20, 1))
+            quiver.scale = max((1 - strength) * 0.1, 0.05)
+            circletext.set_text(f"{strength:.2f}")
+            circle.set_alpha(strength)
 
-        return (scatter, line0, line1, line2, arrows0, arrows1, arrows2)
+        currclass = np.argmax(strengths)
+        currclasscircle.set_color(colors[currclass])
+        currclasstext.set_text(classes[currclass])
 
-    # plt.legend(loc="upper right")
-    ax.set_xlim(*x_lim)
-    ax.set_ylim(*y_lim)
-    ax.set_aspect('equal')
-    fig.set_figheight(4)
+        # (not i % 20) and sys.stdout.write(f"\x1b[JAppleness: {strengths[0]}\nOrangeness: {strengths[1]}\nPearness: {strengths[2]}\n\x1b[3A")
+        return (scatter, *lines, *quivers, *circletexts, *circles, currclasstext, currclasscircle)
+
+    ax1.set_xlabel("Weight (g)")
+    ax1.set_ylabel("Diameter (cm)")
+    ax1.set_xlim(*x_lim)
+    ax1.set_ylim(*y_lim)
+    ax1.set_aspect('equal')
+
+    # ax2.axis('off')
+    ax2.set_aspect('equal')
+    ax2.set_xlim(-5, 5)
+    ax2.set_ylim(-1.25, 1.25)
+
+    fig.suptitle("Strengths")
+    fig.set_figheight(6)
     fig.set_figwidth(10)
-    # plt.savefig("figures/apples_oranges_pears_strengths.pdf")
+    fig.tight_layout()
     anim = FuncAnimation(fig, step, blit=True, interval=0)
     plt.show()
     plt.clf()
