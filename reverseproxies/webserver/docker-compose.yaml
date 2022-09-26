@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+  server1:
+    build: ./server1
+    ports:
+      - "8001:80"
+  server2:
+    build: ./server2
+    ports:
+      - "8002:80"
+  server3:
+    build: ./server3
+    ports:
+      - "8003:80"
+  nginx:
+    image: nginx:1.23-alpine
+    volumes:
+      - ./proxy-nginx/ssl.conf:/etc/nginx/conf.d/ssl.conf
+      - ./cert/cert.crt:/etc/ssl/certs/nginx.crt
+      - ./cert/private.key:/etc/ssl/private/nginx.key
+      - ./cert/dhparam.pem:/etc/ssl/certs/dhparam.pem
+    ports:
+      - "8080:80"
+      - "8443:443"
+  apache:
+    image: httpd:2.4.54-alpine
+    volumes:
+      - ./proxy-apache/httpd.conf:/usr/local/apache2/conf/httpd.conf
+      - ./proxy-apache/httpd-ssl.conf:/usr/local/apache2/conf/extra/httpd-ssl.conf
+      - ./cert/cert.crt:/usr/local/apache2/conf/server.crt
+      - ./cert/private.key:/usr/local/apache2/conf/server.key
+    ports:
+      - "9080:80"    
+      - "9443:443"
+
+networks:
+  default:
+    name: containers
+    driver: bridge
