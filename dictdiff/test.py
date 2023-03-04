@@ -101,14 +101,7 @@ class Test(unittest.TestCase):
             ("b", "A string"),
             ("c", (1, 2, 3)),
             ("d", (4, 5, 6)),
-            (
-                "e",
-                DictTuple(
-                    [
-                        ("f", None),
-                    ]
-                ),
-            ),
+            ("e", DictTuple([("f", None)])),
         ]
 
         self.assertListEqual(items, expected)
@@ -118,8 +111,14 @@ class Test(unittest.TestCase):
         "b": "A string",
         "c": (1, 2, 3),
         "d": [1, 2, 3],
-        "e": {"f": 1, "g": {}},
-        "i": {"j": 1, "k": {"l": 0}},
+        "e": {
+            "f": 1,
+            "g": {},
+        },
+        "i": {
+            "j": 1,
+            "k": {"l": 0},
+        },
         "m": 123,
         "n": frozenset((7, 6, 8)),
     }
@@ -129,16 +128,28 @@ class Test(unittest.TestCase):
         "b": "A string!!!",
         "c": (1, 2, 3),
         "d": [2, 4],
-        "e": {"f": 1, "g": {"h": "help"}},
-        "i": {"j": 43, "k": {"l": 0}},
+        "e": {
+            "f": 1,
+            "g": {"h": "help"},
+        },
+        "i": {
+            "j": 43,
+            "k": {"l": 0},
+        },
         "n": frozenset((9, 8)),
     }
 
     diff = {
         "b": ("A string", "A string!!!"),
         "d": ([1, 2, 3], [2, 4]),
-        "e": {"g": {"h": (undefined, "help")}},
-        "i": {"j": (1, 43)},
+        "e": {
+            "g": {
+                "h": (undefined, "help"),
+            },
+        },
+        "i": {
+            "j": (1, 43),
+        },
         "m": (123, undefined),
         "n": (frozenset((7, 6, 8)), frozenset((9, 8))),
     }
@@ -234,8 +245,3 @@ class Test(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
-    # res = diff(a, b)
-    # pprint(a, width=1)
-    # apply(a, res, delete=True, add=True, update=True)
-    # pprint(a, width=1)
