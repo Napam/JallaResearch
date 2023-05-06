@@ -46,7 +46,9 @@ fn _find_subpath_of(current: &Node, tokens: &[&str]) -> Option<String> {
     current.children.as_ref().map(|map| {
         map.get(&token_of_child.to_string())
             .and_then(|node| _find_subpath_of(node, rest))
-            .map_or(token_of_child.to_string(), |_| "aaa".to_string())
+            .map_or(token_of_child.to_string(), |s| {
+                (*token_of_child).to_owned() + "/" + s.as_str()
+            })
     })
 }
 
@@ -71,12 +73,12 @@ impl Index {
 
     fn find_subpath_of(&self, path: &str) -> Option<String> {
         let tokens: Vec<&str> = path.split('/').collect();
-        let [first, rest @ ..] = tokens.as_slice() else { return None };
+        let [token_of_child, rest @ ..] = tokens.as_slice() else { return None };
 
-        match self.map.get(&first.to_string()) {
-            None => None,
-            Some(node) => _find_subpath_of(node, rest),
-        }
+        self.map
+            .get(&token_of_child.to_string())
+            .and_then(|node| _find_subpath_of(node, rest))
+            .map(|s| (*token_of_child).to_owned() + "/" + s.as_str())
     }
 }
 
@@ -84,9 +86,7 @@ fn main() {
     let paths = vec!["a/b/c", "a/r/f", "a/r/f/d", "b/c", "c", ""];
 
     let index = Index::from(paths.as_slice());
-    println!("LOG:\x1b[33mDEBUG\x1b[0m: index: {:#?}", index);
 
-    let sub = index.find_subpath_of("a/r/f/d/asdf");
-    // index.find_subpath_of(&"x/b/c/d/e".to_string());
-    println!("LOG:\x1b[33mDEBUG\x1b[0m: sub: {:?}", sub);
+    let subpath = index.find_subpath_of("a/r");
+    println!("LOG:\x1b[33mDEBUG\x1b[0m: subpath: {:?}", subpath);
 }
