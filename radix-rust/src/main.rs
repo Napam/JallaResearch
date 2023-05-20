@@ -1,7 +1,7 @@
 #![allow(unused)]
 
 use core::fmt;
-use std::collections::HashMap;
+use std::{collections::HashMap, vec};
 
 #[derive(Default)]
 struct Node {
@@ -40,16 +40,23 @@ impl fmt::Debug for Index {
     }
 }
 
-fn _find_subpath_of(current: &Node, tokens: &[&str]) -> Option<String> {
-    let [token_of_child, rest @ ..] = tokens else { return None };
+enum FindResult {
+    Found,
+    NotFound,
+}
 
-    current.children.as_ref().map(|map| {
-        map.get(&token_of_child.to_string())
-            .and_then(|node| _find_subpath_of(node, rest))
-            .map_or(token_of_child.to_string(), |s| {
-                (*token_of_child).to_owned() + "/" + s.as_str()
-            })
-    })
+fn _find_subpath_of(current: &Node, tokens: &[&str], cum: &mut Vec<String>) -> FindResult {
+    let [token_of_child, rest @ ..] = tokens else {
+        return current.children.as_ref().map_or(FindResult::Found, |_| FindResult::NotFound);
+    };
+
+    if let Some(children) = &current.children {
+        cum.push(token_of_child.to_string());
+        children.get(&token_of_child.to_string())
+                .map_or(FindResult::NotFound, |node| _find_subpath_of(node, rest, cum))
+    } else {
+        FindResult::Found
+    }
 }
 
 impl Index {
@@ -75,10 +82,16 @@ impl Index {
         let tokens: Vec<&str> = path.split('/').collect();
         let [token_of_child, rest @ ..] = tokens.as_slice() else { return None };
 
-        self.map
-            .get(&token_of_child.to_string())
-            .and_then(|node| _find_subpath_of(node, rest))
-            .map(|s| (*token_of_child).to_owned() + "/" + s.as_str())
+        match self.map.get(&token_of_child.to_string()) {
+            None => None,
+            Some(node) => {
+                let mut cum = vec![token_of_child.to_string()];
+                match _find_subpath_of(node, rest, &mut cum) {
+                    FindResult::Found => Some(cum.join("/")),
+                    FindResult::NotFound => None
+                }
+            }
+        }
     }
 }
 
@@ -86,7 +99,8 @@ fn main() {
     let paths = vec!["a/b/c", "a/r/f", "a/r/f/d", "b/c", "c", ""];
 
     let index = Index::from(paths.as_slice());
+    println!("LOG:\x1b[33mDEBUG\x1b[0m: index: {:#?}", index);
 
-    let subpath = index.find_subpath_of("a/r");
+    let subpath = index.find_subpath_of("b/c");
     println!("LOG:\x1b[33mDEBUG\x1b[0m: subpath: {:?}", subpath);
 }
