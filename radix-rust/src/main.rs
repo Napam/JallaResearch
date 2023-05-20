@@ -17,7 +17,7 @@ impl fmt::Debug for Node {
                 .debug_map()
                 .entries(children.iter().map(|(token, node)| {
                     if node.is_valid_path {
-                        (token.to_owned(), node)
+                        (token.to_owned() + "*", node)
                     } else {
                         (token.to_owned(), node)
                     }
@@ -41,22 +41,14 @@ impl Node {
             return;
         };
         let mut map = self.children.get_or_insert_with(HashMap::new);
-        let child = map.entry(token_of_child.to_string()).or_insert_with(|| {
-            let node = Node::new();
-            println!(
-                "LOG:\x1b[32mINFO\x1b[0m: created node: {:?}, {:?}",
-                &node as *const _, token_of_child
-            );
-            node
-        });
+        let child = map
+            .entry(token_of_child.to_string())
+            .or_insert_with(Node::new);
 
         if tokens.len() == 1 {
-            println!(
-                "LOG:\x1b[36mINFO\x1b[0m: valid node: {:?}, {:?}",
-                child as *const _, token_of_child
-            );
             child.is_valid_path = true;
         }
+
         child.update(&tokens[1..]);
     }
 }
@@ -77,17 +69,13 @@ enum FindResult {
 }
 
 fn _find_subpath_of(current: &Node, tokens: &[&str], token_path: &mut Vec<String>) -> FindResult {
-    println!(
-        "LOG:\x1b[35mHIGHLIGHT\x1b[0m: current: {:?}",
-        current as *const _
-    );
+    if (tokens.is_empty() && current.is_valid_path) {
+        return FindResult::Found;
+    }
+
     let [token_of_child, rest @ ..] = tokens else {
         return current.children.as_ref().map_or(FindResult::Found, |_| FindResult::NotFound);
     };
-
-    if (rest.is_empty() && current.is_valid_path) {
-        return FindResult::Found;
-    }
 
     if let Some(children) = &current.children {
         token_path.push(token_of_child.to_string());
@@ -115,23 +103,22 @@ impl Index {
         Index { root }
     }
 
-    fn find_subpath_of(&self, path: &str) -> Option<String> {
+    fn find_subpath_of(&self, path: &str) -> Option<Vec<String>> {
         let tokens: Vec<&str> = path.split('/').collect();
         let mut token_path: Vec<String> = Vec::new();
         match _find_subpath_of(&self.root, tokens.as_slice(), &mut token_path) {
-            FindResult::Found => Some(token_path.join("/")),
+            FindResult::Found => Some(token_path),
             FindResult::NotFound => None,
         }
     }
 }
 
 fn main() {
-    // let paths = vec!["a/b/c", "a/r", "a/r/f/d", "b/c", "c", ""];
-    let paths = vec!["a/r/f", "a/r"];
+    let paths = vec!["a/b/c", "a/r", "a/r/f/d", "b/c", "c", ""];
 
     let index = Index::from(paths.as_slice());
     println!("LOG:\x1b[33mDEBUG\x1b[0m: index: {:#?}", index);
 
-    let subpath = index.find_subpath_of("c");
+    let subpath = index.find_subpath_of("a/r/f/d/e");
     println!("LOG:\x1b[33mDEBUG\x1b[0m: subpath: {:?}", subpath);
 }
