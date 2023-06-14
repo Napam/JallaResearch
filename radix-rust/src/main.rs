@@ -69,6 +69,45 @@ impl Node {
     }
 }
 
+#[derive(Debug, PartialEq)]
+enum FindResult {
+    Found,
+    NotFound,
+}
+
+fn _find_subpath_of(current: &Node, tokens: &[&str], token_path: &mut Vec<String>) -> FindResult {
+    if tokens.is_empty() && current.is_valid_path {
+        return FindResult::Found;
+    }
+
+    let [token_of_child, rest @ ..] = tokens else {
+        return FindResult::NotFound;
+    };
+
+    let result = current.token_to_child.as_ref().and_then(|children| {
+        children.get(*token_of_child).map(|node| {
+            token_path.push(token_of_child.to_string());
+            _find_subpath_of(node, rest, token_path)
+        })
+    });
+
+    if result == Some(FindResult::Found) {
+        return FindResult::Found;
+    }
+
+    if let Some(children) = &current.var_to_child {
+        token_path.push(token_of_child.to_string());
+        if children
+            .iter()
+            .any(|(_, val)| _find_subpath_of(val, rest, token_path) == FindResult::Found)
+        {
+            return FindResult::Found;
+        }
+    }
+
+    FindResult::NotFound
+}
+
 impl Index {
     pub fn from_paths(paths: &[&str]) -> Self {
         let mut root = Node::new();
@@ -80,6 +119,15 @@ impl Index {
         }
 
         Index { root }
+    }
+
+    pub fn find_subpath_of(&self, path: &str) -> Option<Vec<String>> {
+        let tokens: Vec<&str> = path.split('/').collect();
+        let mut token_path: Vec<String> = Vec::new();
+        match _find_subpath_of(&self.root, tokens.as_slice(), &mut token_path) {
+            FindResult::Found => Some(token_path),
+            FindResult::NotFound => None,
+        }
     }
 }
 
@@ -102,9 +150,8 @@ fn run_varindex() {
     let index = Index::from_paths(paths.as_slice());
     println!("log:\x1b[33mdebug\x1b[0m: index: {:#?}", index);
 
-    // "a/b/w/k";
-    // let subpath = index.find_subpath_of("a/b/{thing}/c");
-    // println!("log:\x1b[33mdebug\x1b[0m: subpath: {:?}", subpath);
+    let subpath = index.find_subpath_of("a/b/c");
+    println!("log:\x1b[33mdebug\x1b[0m: subpath: {:?}", subpath);
 }
 
 fn run_simpleindex() {
