@@ -84,8 +84,8 @@ fn _find_subpath_of(current: &Node, tokens: &[&str], token_path: &mut Vec<String
         return FindResult::NotFound;
     };
 
-    if let Some(children) = &current.token_to_child {
-        if let Some(node) = children.get(*token_of_child) {
+    if let Some(token_children) = &current.token_to_child {
+        if let Some(node) = token_children.get(*token_of_child) {
             token_path.push(token_of_child.to_string());
             if _find_subpath_of(node, rest, token_path) == FindResult::Found {
                 return FindResult::Found;
@@ -95,9 +95,9 @@ fn _find_subpath_of(current: &Node, tokens: &[&str], token_path: &mut Vec<String
         };
     }
 
-    if let Some(children) = &current.var_to_child {
+    if let Some(var_children) = &current.var_to_child {
         token_path.push(token_of_child.to_string());
-        if children
+        if var_children
             .iter()
             .any(|(_, node)| _find_subpath_of(node, rest, token_path) == FindResult::Found)
         {
@@ -151,7 +151,7 @@ fn run_varindex() {
     let index = Index::from_paths(paths.as_slice());
     println!("log:\x1b[33mdebug\x1b[0m: index: {:#?}", index);
 
-    let subpath = index.find_subpath_of("a/b/x/v");
+    let subpath = index.find_subpath_of("a/b/r/c");
     println!("log:\x1b[33mdebug\x1b[0m: subpath: {:?}", subpath);
 }
 
