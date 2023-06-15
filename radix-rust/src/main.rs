@@ -84,22 +84,22 @@ fn _find_subpath_of(current: &Node, tokens: &[&str], token_path: &mut Vec<String
         return FindResult::NotFound;
     };
 
-    let result = current.token_to_child.as_ref().and_then(|children| {
-        children.get(*token_of_child).map(|node| {
+    if let Some(children) = current.token_to_child.as_ref() {
+        if let Some(node) = children.get(*token_of_child) {
             token_path.push(token_of_child.to_string());
-            _find_subpath_of(node, rest, token_path)
-        })
-    });
-
-    if result == Some(FindResult::Found) {
-        return FindResult::Found;
+            if _find_subpath_of(node, rest, token_path) == FindResult::Found {
+                return FindResult::Found;
+            } else {
+                token_path.pop();
+            }
+        };
     }
 
     if let Some(children) = &current.var_to_child {
         token_path.push(token_of_child.to_string());
         if children
             .iter()
-            .any(|(_, val)| _find_subpath_of(val, rest, token_path) == FindResult::Found)
+            .any(|(_, node)| _find_subpath_of(node, rest, token_path) == FindResult::Found)
         {
             return FindResult::Found;
         }
@@ -139,10 +139,11 @@ impl fmt::Debug for Index {
 
 fn run_varindex() {
     let paths = vec![
-        "a/b/{thing}/c",
-        "a/b/{thing}/d",
-        "a/b/{thing}",
-        "a/b/{thang}/k",
+        "a/b/{x}/c",
+        "a/b/{x}/d",
+        "a/b/{x}",
+        "a/b/{y}/k",
+        "a/b/{z}/v",
         "a/b/c/d",
         "a/b",
     ];
@@ -150,18 +151,17 @@ fn run_varindex() {
     let index = Index::from_paths(paths.as_slice());
     println!("log:\x1b[33mdebug\x1b[0m: index: {:#?}", index);
 
-    let subpath = index.find_subpath_of("a/b/c");
+    let subpath = index.find_subpath_of("a/b/x/v");
     println!("log:\x1b[33mdebug\x1b[0m: subpath: {:?}", subpath);
 }
 
 fn run_simpleindex() {
-    // let paths = vec!["a/b/c", "a/r", "a/r/f/d", "b/c", "c", ""];
-    let paths = vec!["a/b/{thing}/c"];
+    let paths = vec!["a/b/c", "a/r", "a/r/f/d", "b/c", "c", ""];
 
     let index = simpleindex::Index::from_paths(paths.as_slice());
     println!("log:\x1b[33mdebug\x1b[0m: index: {:#?}", index);
 
-    let subpath = index.find_subpath_of("a/b/{thing}/c");
+    let subpath = index.find_subpath_of("a/b/c");
     println!("log:\x1b[33mdebug\x1b[0m: subpath: {:?}", subpath);
 }
 
