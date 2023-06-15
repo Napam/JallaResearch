@@ -84,7 +84,7 @@ fn _find_subpath_of(current: &Node, tokens: &[&str], token_path: &mut Vec<String
         return FindResult::NotFound;
     };
 
-    if let Some(children) = current.token_to_child.as_ref() {
+    if let Some(children) = &current.token_to_child {
         if let Some(node) = children.get(*token_of_child) {
             token_path.push(token_of_child.to_string());
             if _find_subpath_of(node, rest, token_path) == FindResult::Found {
