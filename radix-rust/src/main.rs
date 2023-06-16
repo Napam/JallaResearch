@@ -75,19 +75,31 @@ enum FindResult {
     NotFound,
 }
 
-fn _find_subpath_of(current: &Node, tokens: &[&str], token_path: &mut Vec<String>) -> FindResult {
+fn _find_subpath_of(
+    current: &Node,
+    tokens: &[&str],
+    token_path: &mut Vec<String>,
+    variables: &mut HashMap<String, String>,
+    exact: bool,
+) -> FindResult {
+    let is_leaf = current.token_to_child.is_none() && current.var_to_child.is_none();
+
+    if is_leaf && !tokens.is_empty() && !exact {
+        return FindResult::Found;
+    }
+
     if tokens.is_empty() && current.is_valid_path {
         return FindResult::Found;
     }
 
-    let [token_of_child, rest @ ..] = tokens else {
+    let [child_token, rest @ ..] = tokens else {
         return FindResult::NotFound;
     };
 
     if let Some(token_children) = &current.token_to_child {
-        if let Some(node) = token_children.get(*token_of_child) {
-            token_path.push(token_of_child.to_string());
-            if _find_subpath_of(node, rest, token_path) == FindResult::Found {
+        if let Some(node) = token_children.get(*child_token) {
+            token_path.push(child_token.to_string());
+            if _find_subpath_of(node, rest, token_path, variables, exact) == FindResult::Found {
                 return FindResult::Found;
             } else {
                 token_path.pop();
@@ -96,16 +108,24 @@ fn _find_subpath_of(current: &Node, tokens: &[&str], token_path: &mut Vec<String
     }
 
     if let Some(var_children) = &current.var_to_child {
-        token_path.push(token_of_child.to_string());
-        if var_children
-            .iter()
-            .any(|(_, node)| _find_subpath_of(node, rest, token_path) == FindResult::Found)
-        {
+        token_path.push(child_token.to_string());
+        let entry = var_children.iter().find(|(_, node)| {
+            _find_subpath_of(node, rest, token_path, variables, exact) == FindResult::Found
+        });
+
+        if let Some((key, node)) = entry {
+            variables.insert(key.to_owned(), child_token.to_string());
             return FindResult::Found;
         }
     }
 
     FindResult::NotFound
+}
+
+#[derive(Debug)]
+pub struct Match {
+    path: Vec<String>,
+    variables: Option<HashMap<String, String>>,
 }
 
 impl Index {
@@ -121,12 +141,29 @@ impl Index {
         Index { root }
     }
 
-    pub fn find_subpath_of(&self, path: &str) -> Option<Vec<String>> {
+    pub fn find(&self, path: &str) -> Option<Match> {
         let tokens: Vec<&str> = path.split('/').collect();
         let mut token_path: Vec<String> = Vec::new();
-        match _find_subpath_of(&self.root, tokens.as_slice(), &mut token_path) {
-            FindResult::Found => Some(token_path),
-            FindResult::NotFound => None,
+        let mut variables: HashMap<String, String> = HashMap::new();
+        let result = _find_subpath_of(
+            &self.root,
+            tokens.as_slice(),
+            &mut token_path,
+            &mut variables,
+            true,
+        );
+
+        if result == FindResult::Found {
+            Some(Match {
+                path: token_path,
+                variables: if variables.is_empty() {
+                    None
+                } else {
+                    Some(variables)
+                },
+            })
+        } else {
+            None
         }
     }
 }
@@ -137,35 +174,23 @@ impl fmt::Debug for Index {
     }
 }
 
-fn run_varindex() {
+fn main() {
     let paths = vec![
         "a/b/{x}/c",
         "a/b/{x}/d",
         "a/b/{x}",
         "a/b/{y}/k",
         "a/b/{z}/v",
+        "stuff/{firstName}/{lastName}",
+        "stuff/{firstName}/{lastName}/id",
         "a/b/c/d",
         "a/b",
+        "salt/pepper",
     ];
 
     let index = Index::from_paths(paths.as_slice());
-    println!("log:\x1b[33mdebug\x1b[0m: index: {:#?}", index);
+    println!("LOG:\x1b[33mDEBUG\x1b[0m: index: {:#?}", index);
 
-    let subpath = index.find_subpath_of("a/b/r/c");
-    println!("log:\x1b[33mdebug\x1b[0m: subpath: {:?}", subpath);
-}
-
-fn run_simpleindex() {
-    let paths = vec!["a/b/c", "a/r", "a/r/f/d", "b/c", "c", ""];
-
-    let index = simpleindex::Index::from_paths(paths.as_slice());
-    println!("log:\x1b[33mdebug\x1b[0m: index: {:#?}", index);
-
-    let subpath = index.find_subpath_of("a/b/c");
-    println!("log:\x1b[33mdebug\x1b[0m: subpath: {:?}", subpath);
-}
-
-fn main() {
-    // run_simpleindex();
-    run_varindex();
+    let subpath = index.find("stuff/naphat/amundsen");
+    println!("LOG:\x1b[33mDEBUG\x1b[0m: subpath: {:#?}", subpath);
 }
