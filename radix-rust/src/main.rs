@@ -51,26 +51,29 @@ fn is_variable(token: &str) -> bool {
 }
 
 #[derive(Debug)]
-pub struct Token<T> {
-    value: T,
+pub struct Token {
+    value: String,
     is_variable: bool,
 }
 
-impl<T> Token<T> {
-    fn new(value: T, is_variable: bool) -> Self {
-        Token { value, is_variable }
+impl Token {
+    fn new(value: &str, is_variable: bool) -> Self {
+        Token {
+            value: value.to_string(),
+            is_variable,
+        }
     }
 
-    fn literal(value: T) -> Self {
+    fn literal(value: &str) -> Self {
         Token {
-            value,
+            value: value.to_string(),
             is_variable: false,
         }
     }
 
-    fn variable(value: T) -> Self {
+    fn variable(value: &str) -> Self {
         Token {
-            value,
+            value: value.to_string(),
             is_variable: true,
         }
     }
@@ -89,7 +92,7 @@ impl Node {
         self.token_to_child.is_none() && self.var_to_child.is_none()
     }
 
-    fn update(&mut self, tokens: &[Token<&str>]) {
+    fn update(&mut self, tokens: &[Token]) {
         let [token_of_child, rest @ .. ] = tokens else {
             self.is_valid_path = true;
             return
@@ -178,7 +181,7 @@ impl Index {
                     .iter()
                     .map(|token| {
                         if is_variable(token) {
-                            Token::variable(token.to_owned().trim_matches(|x| x == '{' || x == '}'))
+                            Token::variable(token.trim_matches(|x| x == '{' || x == '}'))
                         } else {
                             Token::literal(token.to_owned())
                         }
@@ -191,29 +194,27 @@ impl Index {
         Index { root }
     }
 
-    // pub fn from_token_paths(paths: &Vec<Vec<Token<&str>>>) -> Self {
-    //     let mut root = Node::new();
+    pub fn from_token_paths(paths: &[Vec<Token>]) -> Self {
+        let mut root = Node::new();
 
-    //     for path in paths.iter() {
-    //         root.update(tokens.as_slice());
-    //     }
+        for path in paths.iter() {
+            root.update(path)
+        }
 
-    //     Index { root }
-    // }
+        Index { root }
+    }
 
     pub fn from_paths() {}
 
-    pub fn find(&self, path: &str) -> Option<Match> {
+    pub fn find_url(&self, path: &str) -> Option<Match> {
         let tokens: Vec<&str> = path.split('/').collect();
+        self.find(tokens.as_slice())
+    }
+
+    pub fn find(&self, tokens: &[&str]) -> Option<Match> {
         let mut token_path: Vec<String> = Vec::new();
         let mut variables: HashMap<String, String> = HashMap::new();
-        let result = _find_subpath_of(
-            &self.root,
-            tokens.as_slice(),
-            &mut token_path,
-            &mut variables,
-            true,
-        );
+        let result = _find_subpath_of(&self.root, tokens, &mut token_path, &mut variables, true);
 
         if result == FindResult::Found {
             Some(Match {
@@ -250,7 +251,7 @@ fn main() {
         "salt/pepper",
     ];
 
-    let token_paths = vec![
+    let token_paths = [
         vec![
             Token::literal("a"),
             Token::literal("b"),
@@ -268,15 +269,16 @@ fn main() {
             Token::literal("b"),
             Token::variable("x"),
         ],
-        vec![Token::literal("salt"), Token::literal("pepper")],
+        vec![
+            Token::literal("salt"),
+            Token::literal("pepper"),
+            Token::literal("shaker"),
+        ],
     ];
 
-    // let index = Index::from_token_paths(&token_paths);
-    // println!("LOG:\x1b[33mDEBUG\x1b[0m: index: {:#?}", index);
-
-    let index = Index::from_url_paths(url_paths.as_slice());
+    let index = Index::from_token_paths(&token_paths);
     println!("LOG:\x1b[33mDEBUG\x1b[0m: index: {:#?}", index);
 
-    // let subpath = index.find("stuff/naphat/amundsen");
-    // println!("LOG:\x1b[33mDEBUG\x1b[0m: subpath: {:#?}", subpath);
+    let subpath = index.find_url("a/b/asdf/d");
+    println!("LOG:\x1b[33mDEBUG\x1b[0m: subpath: {:#?}", subpath);
 }
