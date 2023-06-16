@@ -3,7 +3,7 @@
 mod simpleindex;
 use core::fmt;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, format};
 
 pub struct Index {
     root: Node,
@@ -22,17 +22,27 @@ impl fmt::Debug for Node {
             .token_to_child
             .iter()
             .flatten()
-            .chain(self.var_to_child.iter().flatten());
+            .map(|(k, v)| (k.to_owned(), v))
+            .chain(
+                self.var_to_child
+                    .iter()
+                    .flatten()
+                    .map(|(k, v)| (format!("{{{}}}", k), v)),
+            );
 
-        f.debug_map()
-            .entries(iter.map(|(token, node)| {
-                if node.is_valid_path {
-                    (token.to_owned() + "*", node)
-                } else {
-                    (token.to_owned(), node)
-                }
-            }))
-            .finish()
+        if self.is_leaf() {
+            write!(f, "")
+        } else {
+            f.debug_map()
+                .entries(iter.map(|(token, node)| {
+                    if node.is_valid_path {
+                        (token + "*", node)
+                    } else {
+                        (token, node)
+                    }
+                }))
+                .finish()
+        }
     }
 }
 
@@ -75,6 +85,10 @@ impl Node {
         }
     }
 
+    fn is_leaf(&self) -> bool {
+        self.token_to_child.is_none() && self.var_to_child.is_none()
+    }
+
     fn update(&mut self, tokens: &[Token<&str>]) {
         let [token_of_child, rest @ .. ] = tokens else {
             self.is_valid_path = true;
@@ -108,9 +122,7 @@ fn _find_subpath_of(
     variables: &mut HashMap<String, String>,
     exact: bool,
 ) -> FindResult {
-    let is_leaf = current.token_to_child.is_none() && current.var_to_child.is_none();
-
-    if is_leaf && !tokens.is_empty() && !exact {
+    if current.is_leaf() && !tokens.is_empty() && !exact {
         return FindResult::Found;
     }
 
