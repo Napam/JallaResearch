@@ -5,7 +5,7 @@ use core::fmt;
 
 use std::{collections::HashMap, format};
 
-pub struct Index {
+pub struct RadixMap {
     root: Node,
 }
 
@@ -169,7 +169,7 @@ pub struct Match {
     variables: Option<HashMap<String, String>>,
 }
 
-impl Index {
+impl RadixMap {
     pub fn from_url_paths(paths: &[&str]) -> Self {
         let mut root = Node::new();
 
@@ -191,7 +191,7 @@ impl Index {
             );
         }
 
-        Index { root }
+        RadixMap { root }
     }
 
     pub fn from_token_paths(paths: &[Vec<Token>]) -> Self {
@@ -201,17 +201,17 @@ impl Index {
             root.update(path)
         }
 
-        Index { root }
+        RadixMap { root }
     }
 
     pub fn from_paths() {}
 
     pub fn find_url(&self, path: &str) -> Option<Match> {
         let tokens: Vec<&str> = path.split('/').collect();
-        self.find(tokens.as_slice())
+        self.get(tokens.as_slice())
     }
 
-    pub fn find(&self, tokens: &[&str]) -> Option<Match> {
+    pub fn get(&self, tokens: &[&str]) -> Option<Match> {
         let mut token_path: Vec<String> = Vec::new();
         let mut variables: HashMap<String, String> = HashMap::new();
         let result = _find_subpath_of(&self.root, tokens, &mut token_path, &mut variables, true);
@@ -231,7 +231,7 @@ impl Index {
     }
 }
 
-impl fmt::Debug for Index {
+impl fmt::Debug for RadixMap {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(&format!("{:#?}", self.root))
     }
@@ -276,7 +276,7 @@ fn main() {
         ],
     ];
 
-    let index = Index::from_token_paths(&token_paths);
+    let index = RadixMap::from_token_paths(&token_paths);
     println!("LOG:\x1b[33mDEBUG\x1b[0m: index: {:#?}", index);
 
     let subpath = index.find_url("a/b/asdf/d");
