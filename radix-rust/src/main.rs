@@ -5,18 +5,19 @@ use core::fmt;
 
 use std::{collections::HashMap, format};
 
-pub struct RadixMap {
-    root: Node,
+pub struct RadixMap<T> {
+    root: Node<T>,
 }
 
 #[derive(Default)]
-pub struct Node {
-    token_to_child: Option<HashMap<String, Node>>,
-    var_to_child: Option<HashMap<String, Node>>,
+pub struct Node<T> {
+    token_to_child: Option<HashMap<String, Node<T>>>,
+    var_to_child: Option<HashMap<String, Node<T>>>,
     is_valid_path: bool,
+    value: Option<T>,
 }
 
-impl fmt::Debug for Node {
+impl<T> fmt::Debug for Node<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let iter = self
             .token_to_child
@@ -79,12 +80,13 @@ impl Token {
     }
 }
 
-impl Node {
-    fn new() -> Node {
+impl<T> Node<T> {
+    fn new(value: Option<T>) -> Node<T> {
         Node {
             token_to_child: None,
             var_to_child: None,
             is_valid_path: false,
+            value,
         }
     }
 
@@ -92,8 +94,8 @@ impl Node {
         self.token_to_child.is_none() && self.var_to_child.is_none()
     }
 
-    fn update(&mut self, tokens: &[Token]) {
-        let [token_of_child, rest @ .. ] = tokens else {
+    fn update(&mut self, tokens_and_value: (&[Token], &T)) {
+        let [token_of_child, rest @ .. ] = tokens_and_value.0 else {
             self.is_valid_path = true;
             return
         };
@@ -106,9 +108,9 @@ impl Node {
 
         let child = map
             .entry(token_of_child.value.to_string())
-            .or_insert_with(Node::new);
+            .or_insert_with(|| Node::new(None));
 
-        child.update(rest);
+        child.update((rest, tokens_and_value.1));
     }
 }
 
@@ -118,8 +120,8 @@ enum FindResult {
     NotFound,
 }
 
-fn _find_subpath_of(
-    current: &Node,
+fn _find_subpath_of<T>(
+    current: &Node<T>,
     tokens: &[&str],
     token_path: &mut Vec<String>,
     variables: &mut HashMap<String, String>,
@@ -169,14 +171,14 @@ pub struct Match {
     variables: Option<HashMap<String, String>>,
 }
 
-impl RadixMap {
-    pub fn from_url_paths(paths: &[&str]) -> Self {
-        let mut root = Node::new();
+impl<T> RadixMap<T> {
+    pub fn from_url_paths_and_values(paths_and_values: &[(&str, &T)]) -> Self {
+        let mut root: Node<T> = Node::new(None);
 
-        for path in paths.iter() {
+        for (path, value) in paths_and_values.iter() {
             let path = path.trim_matches('/');
             let tokens = path.split('/').collect::<Vec<&str>>();
-            root.update(
+            root.update((
                 tokens
                     .iter()
                     .map(|token| {
@@ -187,18 +189,19 @@ impl RadixMap {
                         }
                     })
                     .collect::<Vec<_>>()
-                    .as_slice(),
-            );
+                    .as_slice(), *value
+                
+            ));
         }
 
         RadixMap { root }
     }
 
-    pub fn from_token_paths(paths: &[Vec<Token>]) -> Self {
-        let mut root = Node::new();
+    pub fn from_token_paths(paths_and_values: &[(Vec<Token>, T)]) -> Self {
+        let mut root: Node<T> = Node::new(None);
 
-        for path in paths.iter() {
-            root.update(path)
+        for (path, value) in paths_and_values.iter() {
+            root.update((path.as_slice(), value))
         }
 
         RadixMap { root }
@@ -231,7 +234,7 @@ impl RadixMap {
     }
 }
 
-impl fmt::Debug for RadixMap {
+impl<T> fmt::Debug for RadixMap<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(&format!("{:#?}", self.root))
     }
@@ -252,28 +255,16 @@ fn main() {
     ];
 
     let token_paths = [
-        vec![
+        (vec![
             Token::literal("a"),
             Token::literal("b"),
             Token::variable("x"),
             Token::literal("c"),
-        ],
-        vec![
-            Token::literal("a"),
-            Token::literal("b"),
-            Token::variable("x"),
-            Token::literal("d"),
-        ],
-        vec![
-            Token::literal("a"),
-            Token::literal("b"),
-            Token::variable("x"),
-        ],
-        vec![
+        ], 1),
+        (vec![
             Token::literal("salt"),
             Token::literal("pepper"),
-            Token::literal("shaker"),
-        ],
+        ], 2)
     ];
 
     let index = RadixMap::from_token_paths(&token_paths);
