@@ -238,18 +238,7 @@ impl fmt::Debug for RadixMap {
 }
 
 fn main() {
-    let url_paths = vec![
-        "a/b/{x}/c",
-        "a/b/{x}/d",
-        "a/b/{x}",
-        "a/b/{y}/k",
-        "a/b/{z}/v",
-        "stuff/{firstName}/{lastName}",
-        "stuff/{firstName}/{lastName}/id",
-        "a/b/c/d",
-        "a/b",
-        "salt/pepper",
-    ];
+    let url_paths = vec!["a/b/{x}/c", "a/b/{x}/d", "a/b/{x}", "salt/pepper/shaker"];
 
     let token_paths = [
         vec![
@@ -276,9 +265,12 @@ fn main() {
         ],
     ];
 
+    // TODO: Map should be able to contain a value, like the std map
+
+    // let index = RadixMap::from_url_paths(&url_paths);
     let index = RadixMap::from_token_paths(&token_paths);
     println!("LOG:\x1b[33mDEBUG\x1b[0m: index: {:#?}", index);
 
-    let subpath = index.find_url("a/b/asdf/d");
+    let subpath = index.find_url("a/b/asdf");
     println!("LOG:\x1b[33mDEBUG\x1b[0m: subpath: {:#?}", subpath);
 }
