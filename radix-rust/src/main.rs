@@ -3,7 +3,7 @@
 mod simpleindex;
 use core::fmt;
 
-use std::{collections::HashMap, format};
+use std::{collections::HashMap, fmt::Debug, format};
 
 pub struct RadixMap<T> {
     root: Node<T>,
@@ -17,7 +17,7 @@ pub struct Node<T> {
     value: Option<T>,
 }
 
-impl<T> fmt::Debug for Node<T> {
+impl<T: std::fmt::Debug> fmt::Debug for Node<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let iter = self
             .token_to_child
@@ -35,13 +35,13 @@ impl<T> fmt::Debug for Node<T> {
             write!(f, "")
         } else {
             f.debug_map()
-                .entries(iter.map(|(token, node)| {
-                    if node.is_valid_path {
-                        (token + "*", node)
-                    } else {
-                        (token, node)
-                    }
-                }))
+                .entries(
+                    iter.map(|(token, node)| match (node.is_valid_path, &node.value) {
+                        (true, Some(value)) => (token + "*" + &format!(" ({:?})", value), node),
+                        (true, None) => (token + "*" + "(None)", node),
+                        (false, _) => (token, node),
+                    }),
+                )
                 .finish()
         }
     }
@@ -94,9 +94,10 @@ impl<T> Node<T> {
         self.token_to_child.is_none() && self.var_to_child.is_none()
     }
 
-    fn update(&mut self, tokens_and_value: (&[Token], &T)) {
+    fn update(&mut self, tokens_and_value: (&[Token], T)) {
         let [token_of_child, rest @ .. ] = tokens_and_value.0 else {
             self.is_valid_path = true;
+            self.value = Some(tokens_and_value.1);
             return
         };
 
@@ -171,8 +172,8 @@ pub struct Match {
     variables: Option<HashMap<String, String>>,
 }
 
-impl<T> RadixMap<T> {
-    pub fn from_url_paths_and_values(paths_and_values: &[(&str, &T)]) -> Self {
+impl<T: Copy> RadixMap<T> {
+    pub fn from_url_paths_and_values(paths_and_values: &[(&str, T)]) -> Self {
         let mut root: Node<T> = Node::new(None);
 
         for (path, value) in paths_and_values.iter() {
@@ -189,8 +190,8 @@ impl<T> RadixMap<T> {
                         }
                     })
                     .collect::<Vec<_>>()
-                    .as_slice(), *value
-                
+                    .as_slice(),
+                *value,
             ));
         }
 
@@ -200,8 +201,8 @@ impl<T> RadixMap<T> {
     pub fn from_token_paths(paths_and_values: &[(Vec<Token>, T)]) -> Self {
         let mut root: Node<T> = Node::new(None);
 
-        for (path, value) in paths_and_values.iter() {
-            root.update((path.as_slice(), value))
+        for (path, value) in paths_and_values {
+            root.update((path.as_slice(), *value));
         }
 
         RadixMap { root }
@@ -234,7 +235,7 @@ impl<T> RadixMap<T> {
     }
 }
 
-impl<T> fmt::Debug for RadixMap<T> {
+impl<T: std::fmt::Debug> fmt::Debug for RadixMap<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(&format!("{:#?}", self.root))
     }
@@ -255,21 +256,22 @@ fn main() {
     ];
 
     let token_paths = [
-        (vec![
-            Token::literal("a"),
-            Token::literal("b"),
-            Token::variable("x"),
-            Token::literal("c"),
-        ], 1),
-        (vec![
-            Token::literal("salt"),
-            Token::literal("pepper"),
-        ], 2)
+        (
+            vec![
+                Token::literal("a"),
+                Token::literal("b"),
+                Token::variable("x"),
+                Token::literal("c"),
+            ],
+            1,
+        ),
+        (vec![Token::literal("a"), Token::literal("b")], 2),
+        (vec![Token::literal("salt"), Token::literal("pepper")], 3),
     ];
 
     let index = RadixMap::from_token_paths(&token_paths);
     println!("LOG:\x1b[33mDEBUG\x1b[0m: index: {:#?}", index);
 
-    let subpath = index.find_url("a/b/asdf/d");
+    let subpath = index.find_url("a/b/asdf/c");
     println!("LOG:\x1b[33mDEBUG\x1b[0m: subpath: {:#?}", subpath);
 }
