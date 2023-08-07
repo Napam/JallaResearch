@@ -3,7 +3,7 @@
 mod simpleindex;
 use core::fmt;
 
-use std::{collections::HashMap, fmt::Debug, format};
+use std::{cell::Cell, collections::HashMap, fmt::Debug, format};
 
 pub struct RadixMap<T> {
     root: Node<T>,
@@ -121,18 +121,22 @@ enum FindResult {
     NotFound,
 }
 
-fn _find_subpath_of<T>(
-    current: &Node<T>,
+fn _find_subpath_of<'a, T>(
+    current: &'a Node<T>,
     tokens: &[&str],
     token_path: &mut Vec<String>,
     variables: &mut HashMap<String, String>,
+    result_value: &mut Cell<Option<&'a T>>,
     exact: bool,
 ) -> FindResult {
-    if current.is_leaf() && !tokens.is_empty() && !exact {
+    let reached_end_of_index_path = current.is_leaf() && !tokens.is_empty();
+    if reached_end_of_index_path && !exact {
+        result_value.set(current.value.as_ref());
         return FindResult::Found;
     }
 
     if tokens.is_empty() && current.is_valid_path {
+        result_value.set(current.value.as_ref());
         return FindResult::Found;
     }
 
@@ -143,7 +147,9 @@ fn _find_subpath_of<T>(
     if let Some(token_children) = &current.token_to_child {
         if let Some(node) = token_children.get(*child_token) {
             token_path.push(child_token.to_string());
-            if _find_subpath_of(node, rest, token_path, variables, exact) == FindResult::Found {
+            if _find_subpath_of(node, rest, token_path, variables, result_value, exact)
+                == FindResult::Found
+            {
                 return FindResult::Found;
             } else {
                 token_path.pop();
@@ -154,7 +160,8 @@ fn _find_subpath_of<T>(
     if let Some(var_children) = &current.var_to_child {
         token_path.push(child_token.to_string());
         let entry = var_children.iter().find(|(_, node)| {
-            _find_subpath_of(node, rest, token_path, variables, exact) == FindResult::Found
+            _find_subpath_of(node, rest, token_path, variables, result_value, exact)
+                == FindResult::Found
         });
 
         if let Some((key, node)) = entry {
@@ -167,32 +174,31 @@ fn _find_subpath_of<T>(
 }
 
 #[derive(Debug)]
-pub struct Match {
+pub struct Match<'a, T> {
     path: Vec<String>,
     variables: Option<HashMap<String, String>>,
+    value: &'a T,
 }
 
-impl<T: Copy> RadixMap<T> {
+impl<T: Copy + std::fmt::Debug> RadixMap<T> {
     pub fn from_url_paths_and_values(paths_and_values: &[(&str, T)]) -> Self {
         let mut root: Node<T> = Node::new(None);
 
         for (path, value) in paths_and_values.iter() {
             let path = path.trim_matches('/');
-            let tokens = path.split('/').collect::<Vec<&str>>();
-            root.update((
-                tokens
-                    .iter()
-                    .map(|token| {
-                        if is_variable(token) {
-                            Token::variable(token.trim_matches(|x| x == '{' || x == '}'))
-                        } else {
-                            Token::literal(token.to_owned())
-                        }
-                    })
-                    .collect::<Vec<_>>()
-                    .as_slice(),
-                *value,
-            ));
+            let string_tokens = path.split('/').collect::<Vec<&str>>();
+            let tokens = string_tokens
+                .iter()
+                .map(|token| {
+                    if is_variable(token) {
+                        Token::variable(token.trim_matches(|x| x == '{' || x == '}'))
+                    } else {
+                        Token::literal(token.to_owned())
+                    }
+                })
+                .collect::<Vec<_>>();
+
+            root.update((tokens.as_slice(), *value));
         }
 
         RadixMap { root }
@@ -210,15 +216,24 @@ impl<T: Copy> RadixMap<T> {
 
     pub fn from_paths() {}
 
-    pub fn find_url(&self, path: &str) -> Option<Match> {
+    pub fn find_url(&self, path: &str) -> Option<Match<T>> {
         let tokens: Vec<&str> = path.split('/').collect();
         self.get(tokens.as_slice())
     }
 
-    pub fn get(&self, tokens: &[&str]) -> Option<Match> {
+    pub fn get(&self, tokens: &[&str]) -> Option<Match<T>> {
         let mut token_path: Vec<String> = Vec::new();
         let mut variables: HashMap<String, String> = HashMap::new();
-        let result = _find_subpath_of(&self.root, tokens, &mut token_path, &mut variables, true);
+        let mut result_value: Cell<Option<&T>> = Cell::new(None);
+
+        let result = _find_subpath_of(
+            &self.root,
+            tokens,
+            &mut token_path,
+            &mut variables,
+            &mut result_value,
+            true,
+        );
 
         if result == FindResult::Found {
             Some(Match {
@@ -228,6 +243,7 @@ impl<T: Copy> RadixMap<T> {
                 } else {
                     Some(variables)
                 },
+                value: result_value.take().unwrap(),
             })
         } else {
             None
@@ -272,6 +288,6 @@ fn main() {
     let index = RadixMap::from_token_paths(&token_paths);
     println!("LOG:\x1b[33mDEBUG\x1b[0m: index: {:#?}", index);
 
-    let subpath = index.find_url("a/b/asdf/c");
+    let subpath = index.find_url("a/b");
     println!("LOG:\x1b[33mDEBUG\x1b[0m: subpath: {:#?}", subpath);
 }
