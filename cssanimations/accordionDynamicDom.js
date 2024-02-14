@@ -78,7 +78,7 @@
     createItem(),
   ];
 
-  elements.forEach((element, i) => {
+  elements.forEach((element) => {
     body.appendChild(element);
   });
 })();

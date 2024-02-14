@@ -2,7 +2,7 @@
   const container = createCard();
 
   const header = document.createElement("h3");
-  header.textContent = "Accordion with fixed DOM";
+  header.textContent = "Accordion with static DOM";
   container.appendChild(header);
 
   const body = document.createElement("ul");
@@ -71,7 +71,7 @@
     createItem(),
   ];
 
-  elements.forEach((element, i) => {
+  elements.forEach((element) => {
     body.appendChild(element);
   });
 })();

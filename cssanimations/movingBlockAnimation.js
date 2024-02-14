@@ -38,7 +38,6 @@
   document.head.appendChild(keyframes);
 
   const block = document.createElement("div");
-  const blockSize = 40;
   block.style = css`
     width: 40px;
     height: 40px;
