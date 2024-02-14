@@ -1,0 +1,63 @@
+<html>
+  <head>
+    <style>
+      body {
+        font-family: sans-serif;
+        padding: 24 128 24 128px;
+        background-color: #333;
+        color: #eee;
+      }
+
+      ul,
+      li {
+        all: unset;
+      }
+
+      h3 {
+        margin: unset;
+      }
+
+      .card {
+        border: 1px solid #fff;
+        padding: 8px;
+        width: 280px;
+        height: 280px;
+        overflow-y: auto;
+      }
+
+      #card-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 24px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>CSS Animations 420</h1>
+    <div id="card-container" class="stuff"></div>
+  </body>
+
+  <script>
+    function css(strings, ...values) {
+      let result = "";
+      strings.forEach((string, i) => {
+        result += string + (values[i] || "");
+      });
+      return result;
+    }
+
+    function createCard() {
+      const cardContainer = document.getElementById("card-container");
+      const container = document.createElement("div");
+      container.className = "card";
+      cardContainer.appendChild(container);
+      return container;
+    }
+  </script>
+
+  <script src="movingBlockTransition.js"></script>
+  <script src="movingBlockAnimation.js"></script>
+  <script src="accordionDynamicDom.js"></script>
+  <script src="accordionFixedDom.js"></script>
+</html>
