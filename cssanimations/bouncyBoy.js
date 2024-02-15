@@ -14,7 +14,7 @@
   const innerDiv = document.createElement("div");
   innerDiv.style = css`
     display: flex;
-    height: 140px;
+    height: 120px;
     width: 100%;
     background-color: #777;
   `;
@@ -23,20 +23,18 @@
   const keyframes = document.createElement("style");
   keyframes.textContent = css`
     @keyframes bounce-around {
-      0% {
+      0%,
+      100% {
         transform: translate(0, 0);
       }
       25% {
-        transform: translate(60px, 80px);
+        transform: translate(120px, 80px);
       }
       50% {
-        transform: translate(100px, 0);
+        transform: translate(240px, 0);
       }
       75% {
-        transform: translate(60px, 80px);
-      }
-      100% {
-        transform: translate(0, 0);
+        transform: translate(120px, 80px);
       }
     }
   `;
@@ -55,12 +53,11 @@
   const button = document.createElement("button");
   button.textContent = "Animate";
 
-  ball.style.animation = "bounce-around 2s";
   button.onclick = () => {
     if (animating) {
+      ball.style.animation = "none";
     } else {
-      ball.style.animation =
-        "bounce-around 0.5s cubic-bezier(.1,.82,.25,1) infinite ";
+      ball.style.animation = "bounce-around 1s cubic-bezier(1,0,0,1) infinite ";
     }
 
     animating = !animating;
