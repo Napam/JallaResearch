@@ -20,7 +20,7 @@
   `;
   container.appendChild(innerDiv);
 
-  let isShowing = false;
+
   const button = document.createElement("button");
   button.textContent = "Bring in";
   container.appendChild(button);
@@ -35,6 +35,9 @@
       transform 0.2s;
   `;
 
+  let isShowing = true;
+  innerDiv.appendChild(box);
+
   button.addEventListener("click", () => {
     if (isShowing) {
       innerDiv.addEventListener("transitionend", () => {
@@ -43,12 +46,12 @@
       });
 
       box.style.opacity = "0";
-      box.style.transform = "translateX(100%)";
+      box.style.transform = "translateX(110%)";
 
       button.textContent = "Bring in";
     } else {
       box.style.opacity = "0";
-      box.style.transform = "translateX(-100%)";
+      box.style.transform = "translateX(-110%)";
       innerDiv.appendChild(box);
 
       // Trigger reflow
